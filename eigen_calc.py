@@ -28,7 +28,7 @@ def householder(A):
 
     # Set R equal to A, and create Q as a zero matrix of the same size
     R = A
-    Q = np.zeros(n, n)
+    Q = np.zeros((n, n))
 
     # The Householder procedure
     for k in range(n-1):  # We don't perform the procedure on a 1x1 matrix, so we reduce the index by 1
