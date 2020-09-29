@@ -4,9 +4,7 @@ from sklearn import metrics
 from sklearn import datasets
 from sklearn import decomposition
 import matplotlib.pyplot as plt
-from sklearn import svm
-from sklearn import metrics
-
+import scipy.io
 
 class Classifier:
 
@@ -32,6 +30,9 @@ if __name__ == '__main__':
     faces = datasets.fetch_olivetti_faces()
     faces.data.shape()
 
+    # faces = scipy.io.loadmat('data/olivettifaces.mat')
+    # todo; error: es type 'dict' por lo que no tiene los atributos data y target
+
     # Create feature and target set
     X = faces.data
     y = faces.target
@@ -48,23 +49,8 @@ if __name__ == '__main__':
     X_train_pca = pca.transform(X_train)
     X_test_pca = pca.transform(X_test)
 
-    # Create and train an instance of SVM classifier
-    clf = svm.SVC(C=5., gamma=0.001)
-    clf.fit(X_train_pca, y_train)
-
-    # Predict label for random test images and show the result
-    import numpy as np
-
-    fig = plt.figure(figsize=(16, 8))
-    for i in range(50):
-        ax = fig.add_subplot(5, 10, i + 1, xticks=[], yticks=[])
-        ax.imshow(X_test[i].reshape(faces.images[0].shape),
-                  cmap=plt.cm.gray)
-        y_pred = clf.predict(X_test_pca[i, np.newaxis])[0]
-        color = ('black' if y_pred == y_test[i] else 'red')
-        ax.set_title(faces.target[y_pred],
-                     fontsize='small', color=color)
-
-    # Create a classification report
-    y_pred = clf.predict(X_test_pca)
-    print(metrics.classification_report(y_test, y_pred))
+    # ahora somos nosotras
+    classifier = Classifier(faces)
+    classifier.train_classifier(X_train_pca, y_train)
+    y_pred = classifier.predict(X_test_pca, y_test)
+    print(y_pred)
