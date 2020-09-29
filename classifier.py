@@ -52,5 +52,5 @@ if __name__ == '__main__':
     classifier = Classifier()
     classifier.train_classifier(X_train_pca, y_train)
     y_pred = classifier.predict(X_test_pca, y_test)
-    print(y_test)
-    print(y_pred)
+    # print(y_test)
+    # print(y_pred)
