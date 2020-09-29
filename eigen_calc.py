@@ -1,24 +1,5 @@
-from math import sqrt
 import numpy as np
 from numpy.linalg import norm
-
-
-def mult_matrix(M, N):
-    """Multiply square matrices of same dimension M and N"""
-    # Converts N into a list of tuples of columns
-    tuple_N = zip(*N)
-
-    # Nested list comprehension to calculate matrix multiplication
-    return [[sum(el_m * el_n for el_m, el_n in zip(row_m, col_n)) for col_n in tuple_N] for row_m in M]
-
-
-def Q_i(Q_min, i, j, k):
-    """Construct the Q_t matrix by left-top padding the matrix Q
-    with elements from the identity matrix."""
-    if i < k or j < k:
-        return float(i == j)
-    else:
-        return Q_min[i-k][j-k]
 
 
 def householder(A):
@@ -39,6 +20,7 @@ def householder(A):
         Q[:, k:] = Q[:, k:] - beta * Q[:, k:].dot(np.outer(u, u))
 
     return Q.T, R
+
 
 if __name__ == '__main__':
     A = [[12.0, -51.0, 4.0], [6.0, 167.0, -68.0], [-4.0, 24.0, -41.0]]
