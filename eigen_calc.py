@@ -2,31 +2,42 @@ import numpy as np
 from numpy.linalg import norm
 
 
-def householder(A):
-    n = len(A)
+def householder2(A):
+    """ Householder method to decompose A into its QR form"""
+    m = A.shape[0]
+    n = A.shape[1]
 
-    # Set R equal to A, and create Q as a zero matrix of the same size
+    Q = np.eye(m)
     R = np.copy(A)
-    Q = np.identity(n)
 
-    # The Householder procedure
-    for k in range(n):  # We don't perform the procedure on a 1x1 matrix, so we reduce the index by 1
-        v = R[k:, k]  # kth column
-        ul = v[0] + np.sign(v[0])*norm(v)
-        u = v/ul
-        u[0] = 1
-        beta = np.sign(v[0]) * ul / norm(v)
-        R[k:, :] = R[k:, :] - beta * np.outer(u, u).dot(R[k:])
-        Q[:, k:] = Q[:, k:] - beta * Q[:, k:].dot(np.outer(u, u))
+    for j in range(n):
+        x = A[j:, j]
+        k = x.shape[0]
+
+        s = -np.sign(x[0]) * norm(x, 2)
+        e = np.zeros(k)
+        e[0] = 1
+        v = (1 / (x[0] - s)) * (x - (s * e))
+
+        R[j:, :] = R[j:, :] - (2 / (v @ v)) * ((np.outer(v, v)) @ R[j:])
+        Q[j:] = Q[j:] - (2 / (v @ v)) * ((np.outer(v, v)) @ Q[j:])
 
     return Q.T, R
 
 
+def qr_eig_algorithm(A):
+    for i in range(100):
+        Q, R = householder2(A)
+        A = np.dot(R, Q)
+
+    return A, Q, R
+
 if __name__ == '__main__':
     A = [[12.0, -51.0, 4.0], [6.0, 167.0, -68.0], [-4.0, 24.0, -41.0]]
     A = np.array(A)
-    Q, R = householder(A)
-    print(f"Q: {Q}")
-    print(f"R: {R}")
+    A, Q, R = qr_eig_algorithm(A)
+
+    print(f"Eigenvalues: {np.diagonal(A)}")
+    print(np.linalg.eig(A))
 
 
