@@ -1,8 +1,10 @@
+from typing import Union
+
 import numpy as np
 from numpy.linalg import norm
 
 
-def householder2(A):
+def householder(A):
     """ Householder method to decompose A into its QR form"""
     m = A.shape[0]
     n = A.shape[1]
@@ -26,18 +28,30 @@ def householder2(A):
 
 
 def qr_eig_algorithm(A):
+    """
+    Calculate Eigenvalues and Eigenvectors using QR algorithm
+    See: https://www.physicsforums.com/threads/how-do-i-numerically-find-eigenvectors-for-given-eigenvalues.561763/
+    """
+    Q, R = householder(A)
+    eig_vec = Q
+    A = np.matmul(R, Q)
     for i in range(100):
-        Q, R = householder2(A)
-        A = np.dot(R, Q)
+        Q, R = householder(A)
+        A = np.matmul(R, Q)
+        eig_vec = np.matmul(eig_vec, Q)
 
-    return A, Q, R
+    eig_val = np.diagonal(A)
+
+    # We return the transpose because we want each row to give an eigenvector (instead of each column)
+    return eig_val[::-1], eig_vec.T[::-1]
+
 
 if __name__ == '__main__':
     A = [[12.0, -51.0, 4.0], [6.0, 167.0, -68.0], [-4.0, 24.0, -41.0]]
     A = np.array(A)
-    A, Q, R = qr_eig_algorithm(A)
-
-    print(f"Eigenvalues: {np.diagonal(A)}")
+    eig_val, eig_vec = qr_eig_algorithm(np.copy(A))
+    print(f"Eigenvalues: {eig_val}")
+    print(f"Eigenvectors: {eig_vec}")
     print(np.linalg.eig(A))
 
 
