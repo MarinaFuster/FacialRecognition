@@ -1,5 +1,7 @@
+import matplotlib.pyplot as plt
 import numpy as np
 from PIL import Image
+from mpl_toolkits.mplot3d import Axes3D
 
 
 # IMPORTANT
@@ -9,10 +11,10 @@ from PIL import Image
 class PreProcessing():
     def __init__(self, dataset):
         self.dataset = dataset
-        self.calculate_avg_face()
-        self.standardize_dataset()
+        self.avg_face = self.__get_avg_face(dataset)
+        self.training_set = self.__get_training_set(dataset, self.avg_face)
 
-    def calculate_avg_face(self, dataset):
+    def __get_avg_face(self, dataset):
         # Assuming all images are the same size, get dimensions of first image
         w,h=self.dataset[0].shape[0], self.dataset[0].shape[1]
         N=len(self.dataset)
@@ -25,24 +27,88 @@ class PreProcessing():
             self.avg_face = self.avg_face + face/N
         
         # Round values in array and cast as 8-bit integer
-        self.avg_face=np.array(np.round(self.avg_face),dtype=np.uint8)
+        return np.array(np.round(self.avg_face),dtype=np.uint8)
 
     # This method allows you to save the avg image on your current folder
-    def save_avg_image():
+    def save_avg_image(self):
         # Generate, save and preview final image
         out=Image.fromarray(self.avg_face,mode="RGB")
         out.save("Average.png")
         out.show()
     
-    def standardize_dataset():
+    def __standardize_dataset(self, dataset, avg_face):
         # standardize dataset to be centered at 0 and values range from [-1,1]
-        self.trainning_set = (self.dataset - self.avg_face)/255.0
-
-    # This must be a (255, 255, 3) np array
-    def standardize_input_image(image):
+        return (dataset - avg_face)/255.0
+    
+    def __flatten_dataset(self, dataset):
+        return np.array([xi.flatten() for xi in dataset])
+    
+    def __get_training_set(self, dataset, avg_face):
+        standardized = self.__standardize_dataset(dataset, self.avg_face)
+        flatten = self.__flatten_dataset(standardized)
+        return flatten
+    
+    # This must be a (256, 256, 3) np array
+    def regular_preprocess(self, image):
         if image.shape != self.avg_face.shape:
-            print("Your image shape should be (255,255,3)")
+            print("Your image shape should be (256,256,3)")
             return
         
         # standardize image to be centered and values will range from [-1,1]
-        return (image - self.avg_face)/255.0
+        standardize = (image - self.avg_face)/255.0
+        return standardize.flatten()
+
+class PCAPreprocessing():
+    def __init__(self, dataset, avg_face, eigenvectors):
+        self.avg_face = avg_face
+        self.eigenvectors = eigenvectors
+        self.eigenfaces = self.__get_eigenfaces(dataset, eigenvectors)
+        self.training_set = self.__apply_pca(dataset)
+        self.__save_eigenfaces()
+        self.__save_dataset_projections()
+
+    def __apply_pca(self, dataset):
+        training_set = []
+        for im in dataset:
+            coords = []
+            for face in self.eigenfaces:
+                coords.append(np.dot(face.T, im))
+            training_set.append(np.array(coords))
+        return np.array(training_set)
+    
+    def __get_eigenfaces(self, dataset, eigenvectors):
+        eigenfaces = []
+        for vector in eigenvectors:
+            eigenface = np.zeros(dataset[0].shape)
+            for i in range(vector.shape[0]):
+                eigenface = eigenface + vector[i]*dataset[i]
+            eigenfaces.append(eigenface)
+        return np.array(eigenfaces)
+    
+    def __save_eigenfaces(self):
+        for i in range(self.eigenfaces.shape[0]):
+            reshaped = np.reshape(self.eigenfaces[i], (256, 256, 3))*255 + self.avg_face
+            reshaped = reshaped/255
+            plt.imshow(reshaped)
+            plt.savefig(f"eigenfaces/eigenface_{i}.png")
+            plt.clf()
+    
+    def __save_dataset_projections(self):
+        X = self.training_set[:,0]
+        Y = self.training_set[:,1]
+        Z = self.training_set[:,2]
+        
+        ax = plt.axes(projection = "3d")
+        ax.scatter3D(X,Y,Z)
+        
+        plt.title("Projection of images on eigenface dimensional space")
+        plt.savefig("eigenfaces/dataset_projection.png")
+    
+    def apply_pca(self, image):
+        if image.shape[0] != 256*256*3:
+            print("Your image shape should be (256,256,3) flatten")
+            return
+        coords = []
+        for face in self.eigenfaces:
+            coords.append(np.dot(face.T, image))
+        return np.array(coords)
