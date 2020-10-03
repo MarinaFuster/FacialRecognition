@@ -3,17 +3,14 @@ import numpy as np
 from PIL import Image
 from mpl_toolkits.mplot3d import Axes3D
 
-
-# IMPORTANT
-# @field dataset: original images dataset to train NN for classification
-# @field avg_face: avg_face calculated from dataset in order to standardize images (centered at 0)
-# @field trainning_set: all images are now standardized (centered at 0) and their values range from -1 to 1
 class PreProcessing():
     def __init__(self, dataset):
         self.dataset = dataset
         self.avg_face = self.__get_avg_face(dataset)
         self.training_set = self.__get_training_set(dataset, self.avg_face)
+        self.__save_avg_image()
 
+    """ Calcluates avg face from dataset """
     def __get_avg_face(self, dataset):
         # Assuming all images are the same size, get dimensions of first image
         w,h=self.dataset[0].shape[0], self.dataset[0].shape[1]
@@ -29,25 +26,29 @@ class PreProcessing():
         # Round values in array and cast as 8-bit integer
         return np.array(np.round(self.avg_face),dtype=np.uint8)
 
-    # This method allows you to save the avg image on your current folder
-    def save_avg_image(self):
+    """ Save avg image to eigenfaces folder """
+    def __save_avg_image(self):
         # Generate, save and preview final image
         out=Image.fromarray(self.avg_face,mode="RGB")
-        out.save("Average.png")
-        out.show()
+        out.save("eigenfaces/average.png")
     
+    """ Substracts avg face from dataset and values range from [-1,1] """
     def __standardize_dataset(self, dataset, avg_face):
         # standardize dataset to be centered at 0 and values range from [-1,1]
         return (dataset - avg_face)/255.0
     
+    """ Flattens all images to (256,256,3) to 256*256*3 dimensions """
     def __flatten_dataset(self, dataset):
         return np.array([xi.flatten() for xi in dataset])
     
+    """ Preprocesses dataset that will be used for training set 
+        Applies both standardize and flatten methods """
     def __get_training_set(self, dataset, avg_face):
         standardized = self.__standardize_dataset(dataset, self.avg_face)
         flatten = self.__flatten_dataset(standardized)
         return flatten
     
+    """ Every time we want to test an image, we MUST call this method before applying PCA preprocessing """
     # This must be a (256, 256, 3) np array
     def regular_preprocess(self, image):
         if image.shape != self.avg_face.shape:
@@ -67,6 +68,7 @@ class PCAPreprocessing():
         self.__save_eigenfaces()
         self.__save_dataset_projections()
 
+    """ Applies PCA to dataset and returns training set for classifier """
     def __apply_pca(self, dataset):
         training_set = []
         for im in dataset:
@@ -76,6 +78,8 @@ class PCAPreprocessing():
             training_set.append(np.array(coords))
         return np.array(training_set)
     
+    """ Calculates eigenfaces using dataset and eigenvector that represent some percentage of information.
+        Eigenfaces work as a basis for all images """
     def __get_eigenfaces(self, dataset, eigenvectors):
         eigenfaces = []
         for vector in eigenvectors:
@@ -85,6 +89,7 @@ class PCAPreprocessing():
             eigenfaces.append(eigenface)
         return np.array(eigenfaces)
     
+    """ Eigenfaces are saved in eigenfaces/"""
     def __save_eigenfaces(self):
         for i in range(self.eigenfaces.shape[0]):
             reshaped = np.reshape(self.eigenfaces[i], (256, 256, 3))*255 + self.avg_face
@@ -93,6 +98,7 @@ class PCAPreprocessing():
             plt.savefig(f"eigenfaces/eigenface_{i}.png")
             plt.clf()
     
+    """ Plots all elements from training set onto the first three eigenfaces dimensional space """
     def __save_dataset_projections(self):
         X = self.training_set[:,0]
         Y = self.training_set[:,1]
@@ -104,6 +110,8 @@ class PCAPreprocessing():
         plt.title("Projection of images on eigenface dimensional space")
         plt.savefig("eigenfaces/dataset_projection.png")
     
+    """ After an image was regular preprocessed, we call this method to apply PCA.
+        This method returns coords of the test image on defined eigenfaces """
     def apply_pca(self, image):
         if image.shape[0] != 256*256*3:
             print("Your image shape should be (256,256,3) flatten")
