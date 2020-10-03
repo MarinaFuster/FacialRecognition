@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from PIL import Image
 from data_loading import load_images
-from preprocessing import PreProcessing, PCAPreprocessing
+from preprocessing import PreProcessing, PCAPreprocessing, KPCAPreprocessing
 from sklearn.decomposition import PCA
 
 dataset = load_images()
@@ -10,7 +10,9 @@ dataset = load_images()
 preprocessing = PreProcessing(dataset)
 
 # Over this matrix we need to calculate eigenvectorss
-C_matrix = np.dot(preprocessing.training_set, preprocessing.training_set.T)
+C_matrix = np.matmul(preprocessing.training_set, preprocessing.training_set.T)
+# K = KPCAPreprocessing.rbf_kernel_pca(X=preprocessing.training_set)
+C_matrix = K
 
 # From here ...
 pca_module = PCA(n_components=dataset.shape[0])
