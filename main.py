@@ -12,7 +12,7 @@ preprocessing = PreProcessing(dataset)
 # Over this matrix we need to calculate eigenvectorss
 C_matrix = np.matmul(preprocessing.training_set, preprocessing.training_set.T)
 # K = KPCAPreprocessing.rbf_kernel_pca(X=preprocessing.training_set)
-C_matrix = K
+# C_matrix = K
 
 # From here ...
 pca_module = PCA(n_components=dataset.shape[0])
