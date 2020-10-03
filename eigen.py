@@ -3,6 +3,9 @@ from typing import Union
 import numpy as np
 from numpy.linalg import norm
 
+DELTA = 10 ** -8
+MAX_ITERATIONS = 1000
+
 
 def householder(A):
     """ Householder method to decompose A into its QR form"""
@@ -27,31 +30,36 @@ def householder(A):
     return Q.T, R
 
 
+def found_eigenvalues(original_matrix, iterated_matrix):
+    maybe_eigenvalues = iterated_matrix.diagonal()
+    for value in maybe_eigenvalues:
+        if not np.linalg.det(original_matrix - np.eye(len(maybe_eigenvalues)) * value) < DELTA:
+            return False
+
+    return True
+
+
+def eigenvectors_stabilized(new_vec, curr_vec):
+    return np.linalg.norm(np.subtract(new_vec, curr_vec)) < DELTA
+
+
 def qr_eig_algorithm(A):
     """
     Calculate Eigenvalues and Eigenvectors using QR algorithm
     See: https://www.physicsforums.com/threads/how-do-i-numerically-find-eigenvectors-for-given-eigenvalues.561763/
     """
-    Q, R = householder(A)
-    eig_vec = Q
-    A = np.matmul(R, Q)
-    for i in range(100):
-        Q, R = householder(A)
-        A = np.matmul(R, Q)
-        eig_vec = np.matmul(eig_vec, Q)
+    a = A.copy()
+    eig_vec = np.identity(a.shape[0])
+    for i in range(MAX_ITERATIONS):
+        Q, R = householder(a)
+        a = R.dot(Q)
+        new_eig = eig_vec.dot(Q)
+        if found_eigenvalues(A, a) and eigenvectors_stabilized(new_eig, eig_vec):
+            break
+        eig_vec = new_eig
 
-    eig_val = np.diagonal(A)
+    eig_val = np.diag(a)
 
+    sort = np.argsort(np.absolute(eig_val))[::-1]
     # We return the transpose because we want each row to give an eigenvector (instead of each column)
-    return eig_val[::-1], eig_vec.T[::-1]
-
-
-if __name__ == '__main__':
-    A = [[12.0, -51.0, 4.0], [6.0, 167.0, -68.0], [-4.0, 24.0, -41.0]]
-    A = np.array(A)
-    eig_val, eig_vec = qr_eig_algorithm(np.copy(A))
-    print(f"Eigenvalues: {eig_val}")
-    print(f"Eigenvectors: {eig_vec}")
-    print(np.linalg.eig(A))
-
-
+    return eig_val[sort], eig_vec[sort]
