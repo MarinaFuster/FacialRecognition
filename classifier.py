@@ -8,7 +8,13 @@ from sklearn.model_selection import train_test_split
 
 class Classifier:
 
-    def __init__(self, C=5., gamma=0.001):
+    # Gamma: defines how far the influence of a single training example reaches, with low values meaning ‘far’ and
+    # high values meaning ‘close’. The gamma parameters can be seen as the inverse of the radius of influence of
+    # samples selected by the model as support vectors. C: trades off correct classification of training examples
+    # against maximization of the decision function’s margin. For larger values of C, a smaller margin will be
+    # accepted if the decision function is better at classifying all training points correctly. A lower C will
+    # encourage a larger margin, therefore a simpler decision function, at the cost of training accuracy.
+    def __init__(self, C=10., gamma=0.001):
         self.clf = svm.SVC(C=C, gamma=gamma)
 
     def train_classifier(self, X_train_pca, y_train):
