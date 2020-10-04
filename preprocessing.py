@@ -132,13 +132,13 @@ class PCAPreprocessing():
             coords.append(np.dot(face, image)/np.linalg.norm(face))
         return np.array(coords)
     
-    def reconstruct_image(self, pca_coords, label):
+    def reconstruct_image(self, pca_coords, label, predicted_label):
         flatten = np.zeros(self.h*self.w*self.d)
         for i in range(self.eigenfaces.shape[0]):
             flatten += pca_coords[i]*self.eigenfaces[i]
         reshaped = np.reshape(flatten, (self.h, self.w, self.d))*255 + self.avg_face
         reshaped = reshaped/255
-        plt.title(label)
+        plt.title(f"Label: {label}  -  Predicted Label: {predicted_label}")
         plt.imshow(reshaped)
         plt.show()
         plt.clf()

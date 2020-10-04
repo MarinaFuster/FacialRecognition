@@ -83,8 +83,7 @@ def train_with_svm(dataset_train, dataset_test, labels_train, labels_test, paths
 
     dataset_test = np.array(dataset_test_pca)
     for i in range(dataset_test.shape[0]):
-        print(names[labels_test[i]])
-        pca_processing.reconstruct_image(dataset_test[i], names[y_pred[i]])
+        pca_processing.reconstruct_image(dataset_test[i], names[labels_test[i]], names[y_pred[i]])
 
     # To obtain a more readable output
     for i in range(len(y_pred)):
