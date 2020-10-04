@@ -20,9 +20,10 @@ class Classifier:
     def train_classifier(self, X_train_pca, y_train):
         self.clf.fit(X_train_pca, y_train)
 
-    def predict(self, X_test, y_test):
+    def predict(self, X_test, y_test=None):
         y_pred = self.clf.predict(X_test)
-        print(metrics.classification_report(y_test, y_pred))
+        if y_test is not None:
+            print(metrics.classification_report(y_test, y_pred))
         return y_pred
 
 

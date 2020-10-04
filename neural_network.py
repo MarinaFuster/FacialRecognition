@@ -10,7 +10,7 @@ class NNClassifier():
             keras.layers.LeakyReLU(alpha=0.2),
             keras.layers.Dense(5, activation='softmax')
         ])
-        
+
         optimizer = Adam(lr=1e-3)
         model.compile(loss="mse", optimizer=optimizer)
 
@@ -22,4 +22,3 @@ class NNClassifier():
 
     def predict(self, dataset):
         return self.model.predict(dataset)
-    
