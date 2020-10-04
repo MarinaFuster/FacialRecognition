@@ -77,7 +77,7 @@ class PCAPreprocessing():
         for im in dataset:
             coords = []
             for face in self.eigenfaces:
-                coords.append(np.dot(face.T, im))
+                coords.append(np.dot(face, im)/np.linalg.norm(face))
             training_set.append(np.array(coords))
         return np.array(training_set)
     
@@ -89,7 +89,7 @@ class PCAPreprocessing():
             eigenface = np.zeros(dataset[0].shape)
             for i in range(vector.shape[0]):
                 eigenface = eigenface + vector[i]*dataset[i]
-            eigenfaces.append(eigenface)
+            eigenfaces.append(eigenface/np.linalg.norm(eigenface))
         return np.array(eigenfaces)
     
     """ Eigenfaces are saved in eigenfaces/"""
@@ -112,6 +112,7 @@ class PCAPreprocessing():
         
         plt.title("Projection of images on eigenface dimensional space")
         plt.savefig("eigenfaces/dataset_projection.png")
+        plt.clf()
     
     """ After an image was regular preprocessed, we call this method to apply PCA.
         This method returns coords of the test image on defined eigenfaces """
@@ -121,9 +122,20 @@ class PCAPreprocessing():
             return
         coords = []
         for face in self.eigenfaces:
-            coords.append(np.dot(face.T, image))
+            coords.append(np.dot(face, image)/np.linalg.norm(face))
         return np.array(coords)
-
+    
+    def reconstruct_image(self, pca_coords, label):
+        flatten = np.zeros(256*256*3)
+        for i in range(self.eigenfaces.shape[0]):
+            flatten += pca_coords[i]*self.eigenfaces[i]
+        reshaped = np.reshape(flatten, (256, 256, 3))*255 + self.avg_face
+        reshaped = reshaped/255
+        plt.title(label)
+        plt.imshow(reshaped)
+        plt.show()
+        plt.clf()
+            
 class KPCAPreprocessing():
     @staticmethod
     def rbf_kernel_pca(dataset, gamma=0.000001):

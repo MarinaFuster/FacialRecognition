@@ -7,6 +7,7 @@ from preprocessing import PreProcessing, PCAPreprocessing, KPCAPreprocessing
 from sklearn.decomposition import PCA
 from classifier import Classifier
 from sklearn.model_selection import train_test_split
+from neural_network import NNClassifier
 
 dataset, labels, paths, names = load_images()
 # Shuffle in unison dataset and labels to obtain a trainning dataset with greater variance
@@ -16,13 +17,13 @@ dataset, labels, paths, names = load_images()
 # labels = dataset_combined[:, dataset.size//len(dataset):].reshape(labels.shape)
 
 # Split dataset and labels in trainning and testing sets
-dataset_train, dataset_test, labels_train, labels_test = train_test_split(dataset, labels, test_size=0.02)
+dataset_train, dataset_test, labels_train, labels_test = train_test_split(dataset, labels, test_size=0.2)
 
 preprocessing = PreProcessing(dataset_train)
 
 # Over this matrix we need to calculate eigenvectorss
 C_matrix = np.matmul(preprocessing.training_set, preprocessing.training_set.T)
-# K = KPCAPreprocessing.rbf_kernel_pca(X=preprocessing.training_set)
+# K = KPCAPreprocessing.rbf_kernel_pca(preprocessing.training_set)
 # C_matrix = K
 
 # From here ...
@@ -42,6 +43,9 @@ eigenvectors = pca_module.components_[list(range(0,i))]
 # Apply PCA transformation to training data
 pca_processing = PCAPreprocessing(preprocessing.training_set, preprocessing.avg_face, eigenvectors)
 
+# for i in range(pca_processing.training_set.shape[0]):
+#     pca_processing.reconstruct_image(pca_processing.training_set[i], labels_train[i])
+
 # Train classifier with default C and gamma values
 classifier = Classifier()
 classifier.train_classifier(pca_processing.training_set, labels_train)
@@ -59,3 +63,14 @@ y_pred = classifier.predict(dataset_test_pca, labels_test)
 for i in range(len(y_pred)):
     print("Predicting: ", paths[i], end ="")
     print(". Face belongs to ... ", names[int(y_pred[i])])
+
+# Testing with another classifier to check if that's the problem
+nn_classifier = NNClassifier(pca_processing.training_set[0].shape, 5)
+nn_classifier.train(500, pca_processing.training_set, labels_train)
+
+predictions = nn_classifier.predict(np.array(dataset_test_pca))
+
+for i in range(predictions.shape[0]):
+    max_idx = np.argmax(predictions[i])
+    print("Predicting: ", paths[i], end ="")
+    print(". Face belongs to ... ", names[max_idx])
