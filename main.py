@@ -3,7 +3,7 @@ from pathlib import Path
 
 import numpy as np
 import matplotlib.pyplot as plt
-
+from PIL import Image
 
 from preprocessing import PreProcessing, PCAPreprocessing, KPCAPreprocessing
 from sklearn.decomposition import PCA
@@ -97,10 +97,11 @@ if __name__ == '__main__':
             continue
 
         # We assume its a path, not a directory (yet)
-        image = cv2.imread(path)
+        image = np.array(Image.open(path), dtype=np.float)
         stnd_img = preprocessing.regular_preprocess(image)
         processed_image = pca_processing.apply_pca(stnd_img)
         y_pred = classifier.predict([processed_image])
+        print(names[y_pred])
 
 
 
