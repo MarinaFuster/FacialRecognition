@@ -22,7 +22,7 @@ class Classifier:
 
     def predict(self, X_test, y_test):
         y_pred = self.clf.predict(X_test)
-        print(metrics.classification_report(y_test, y_pred))
+        #print(metrics.classification_report(y_test, y_pred))
         return y_pred
 
 
