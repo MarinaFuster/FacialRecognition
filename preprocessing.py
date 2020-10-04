@@ -7,20 +7,23 @@ from scipy import exp
 from scipy.linalg import eigh
 
 class PreProcessing():
-    def __init__(self, dataset):
+    def __init__(self, dataset, h, w, d):
+        self.h = h
+        self.w = w
+        self.d = d
         self.dataset = dataset
         self.avg_face = self.__get_avg_face(dataset)
         self.training_set = self.__get_training_set(dataset, self.avg_face)
-        self.__save_avg_image()
+        if self.d == 3:
+            self.__save_avg_image()
 
     """ Calcluates avg face from dataset """
     def __get_avg_face(self, dataset):
         # Assuming all images are the same size, get dimensions of first image
-        w,h=self.dataset[0].shape[0], self.dataset[0].shape[1]
         N=len(self.dataset)
 
         # Create a np array of floats to store the average (assume RGB images)
-        self.avg_face=np.zeros((h,w,3),np.float)
+        self.avg_face=np.zeros((self.h,self.w,self.d),np.float)
 
         # Build up average pixel intensities, casting each image as an array of floats
         for face in self.dataset:
@@ -55,7 +58,7 @@ class PreProcessing():
     # This must be a (256, 256, 3) np array
     def regular_preprocess(self, image):
         if image.shape != self.avg_face.shape:
-            print("Your image shape should be (256,256,3)")
+            print(f"Your image shape should be the same as {self.avg_face.shape}")
             return
         
         # standardize image to be centered and values will range from [-1,1]
@@ -63,13 +66,17 @@ class PreProcessing():
         return standardize.flatten()
 
 class PCAPreprocessing():
-    def __init__(self, dataset, avg_face, eigenvectors):
+    def __init__(self, dataset, avg_face, eigenvectors, h, w, d):
+        self.h = h
+        self.w = w
+        self.d = d
         self.avg_face = avg_face
         self.eigenvectors = eigenvectors
         self.eigenfaces = self.__get_eigenfaces(dataset, eigenvectors)
         self.training_set = self.__apply_pca(dataset)
-        self.__save_eigenfaces()
-        self.__save_dataset_projections()
+        if self.d == 3:
+            self.__save_eigenfaces()
+            self.__save_dataset_projections()
 
     """ Applies PCA to dataset and returns training set for classifier """
     def __apply_pca(self, dataset):
@@ -77,7 +84,7 @@ class PCAPreprocessing():
         for im in dataset:
             coords = []
             for face in self.eigenfaces:
-                coords.append(np.dot(face.T, im))
+                coords.append(np.dot(face, im)/np.linalg.norm(face))
             training_set.append(np.array(coords))
         return np.array(training_set)
     
@@ -89,13 +96,13 @@ class PCAPreprocessing():
             eigenface = np.zeros(dataset[0].shape)
             for i in range(vector.shape[0]):
                 eigenface = eigenface + vector[i]*dataset[i]
-            eigenfaces.append(eigenface)
+            eigenfaces.append(eigenface/np.linalg.norm(eigenface))
         return np.array(eigenfaces)
     
     """ Eigenfaces are saved in eigenfaces/"""
     def __save_eigenfaces(self):
         for i in range(self.eigenfaces.shape[0]):
-            reshaped = np.reshape(self.eigenfaces[i], (256, 256, 3))*255 + self.avg_face
+            reshaped = np.reshape(self.eigenfaces[i], (self.h, self.w, self.d))*255 + self.avg_face
             reshaped = reshaped/255
             plt.imshow(reshaped)
             plt.savefig(f"eigenfaces/eigenface_{i}.png")
@@ -112,18 +119,30 @@ class PCAPreprocessing():
         
         plt.title("Projection of images on eigenface dimensional space")
         plt.savefig("eigenfaces/dataset_projection.png")
+        plt.clf()
     
     """ After an image was regular preprocessed, we call this method to apply PCA.
         This method returns coords of the test image on defined eigenfaces """
     def apply_pca(self, image):
-        if image.shape[0] != 256*256*3:
+        if image.shape[0] != self.h*self.w*self.d:
             print("Your image shape should be (256,256,3) flatten")
             return
         coords = []
         for face in self.eigenfaces:
-            coords.append(np.dot(face.T, image))
+            coords.append(np.dot(face, image)/np.linalg.norm(face))
         return np.array(coords)
-
+    
+    def reconstruct_image(self, pca_coords, label, predicted_label):
+        flatten = np.zeros(self.h*self.w*self.d)
+        for i in range(self.eigenfaces.shape[0]):
+            flatten += pca_coords[i]*self.eigenfaces[i]
+        reshaped = np.reshape(flatten, (self.h, self.w, self.d))*255 + self.avg_face
+        reshaped = reshaped/255
+        plt.title(f"Label: {label}  -  Predicted Label: {predicted_label}")
+        plt.imshow(reshaped)
+        plt.show()
+        plt.clf()
+            
 class KPCAPreprocessing():
     @staticmethod
     def rbf_kernel_pca(dataset, gamma=0.000001):
