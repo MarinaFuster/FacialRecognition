@@ -28,4 +28,4 @@ def load_images():
         name = re.findall(r'[a-z]+', im)[0]
         labels.append(names.index(name))
 
-    return np.array(images), np.array(labels), np.array(imlist), np.array(names)
+    return np.array(images), np.array(labels), np.array(names)

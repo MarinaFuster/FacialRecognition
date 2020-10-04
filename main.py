@@ -28,7 +28,7 @@ def olivetti_faces():
     return dataset_train, dataset_test, labels_train, labels_test
 
 def local_dataset():
-    dataset, labels, paths, names = load_images()
+    dataset, labels, names = load_images()
     # Shuffle in unison dataset and labels to obtain a trainning dataset with greater variance
     # dataset_combined = np.c_[dataset.reshape(len(dataset), -1), labels.reshape(len(labels), -1)]
     # np.random.shuffle(dataset_combined)
@@ -38,15 +38,15 @@ def local_dataset():
     # Split dataset and labels in trainning and testing sets
     dataset_train, dataset_test, labels_train, labels_test = train_test_split(dataset, labels, test_size=0.2)
     
-    return dataset_train, dataset_test, labels_train, labels_test, paths, names
+    return dataset_train, dataset_test, labels_train, labels_test, names
 
-def train_with_svm(dataset_train, dataset_test, labels_train, labels_test, paths=None, names=None):
+def train_with_svm(dataset_train, dataset_test, labels_train, labels_test, names=None):
     preprocessing = PreProcessing(dataset_train, dataset_train.shape[1], dataset_train.shape[2], dataset_train.shape[3])
 
     # Over this matrix we need to calculate eigenvectorss
-    C_matrix = np.matmul(preprocessing.training_set, preprocessing.training_set.T)
-    # K = KPCAPreprocessing.rbf_kernel_pca(preprocessing.training_set)
-    # C_matrix = K
+    #C_matrix = np.matmul(preprocessing.training_set, preprocessing.training_set.T)
+    K = KPCAPreprocessing.rbf_kernel_pca(preprocessing.training_set)
+    C_matrix = K
 
     # From here ...
     pca_module = PCA(n_components=dataset_train.shape[0])
@@ -87,7 +87,7 @@ def train_with_svm(dataset_train, dataset_test, labels_train, labels_test, paths
 
     # To obtain a more readable output
     for i in range(len(y_pred)):
-        print("Predicting: ", paths[i], end ="")
+        print("Predicting: ", names[labels_test[i]], end ="")
         print(". Face belongs to ... ", names[int(y_pred[i])])
 
     corrects = 0
@@ -96,7 +96,7 @@ def train_with_svm(dataset_train, dataset_test, labels_train, labels_test, paths
             corrects = corrects+1
     print(f"{corrects} out of {y_pred.shape[0]} were predicted properly")
 
-def train_with_nn(dataset_train, dataset_test, labels_train, labels_test, paths=None, names=None):
+def train_with_nn(dataset_train, dataset_test, labels_train, labels_test, names=None):
     preprocessing = PreProcessing(dataset_train, dataset_train.shape[1], dataset_train.shape[2], dataset_train.shape[3])
 
     # Over this matrix we need to calculate eigenvectorss
@@ -148,5 +148,5 @@ def train_with_nn(dataset_train, dataset_test, labels_train, labels_test, paths=
     print(f"{corrects} out of {y_pred.shape[0]} were predicted properly")
 
 if __name__ == '__main__':
-    dataset_train, dataset_test, labels_train, labels_test, paths, names = local_dataset()
-    train_with_svm(dataset_train, dataset_test, labels_train, labels_test, paths=paths, names=names)
+    dataset_train, dataset_test, labels_train, labels_test, names = local_dataset()
+    train_with_svm(dataset_train, dataset_test, labels_train, labels_test, names=names)
