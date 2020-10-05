@@ -52,12 +52,19 @@ def train_with_svm(dataset_train, labels_train, classifier, is_pca):
     return preprocessing, pca_processing
 
 
-def test_with_svm(dataset_test, classifier, preprocessing, pca_processing, labels_test=None, names_test=None, names=None):
+def test_with_svm(dataset_test, classifier, preprocessing, pca_processing, labels_test=None, labels_train=None,  names_test=None, names=None):
     # Apply PCA transformation to testing data
     dataset_test_pca = preprocess_dataset(pca_processing, preprocessing, dataset_test)
 
+    labels_test_mapped_to_labels_train = []
+
+    for label in labels_test:
+        labels_test_mapped_to_labels_train.append(list(names).index(names_test[label]))
+
+    print(labels_test_mapped_to_labels_train)
+
     # Test classifier
-    y_pred = classifier.predict(dataset_test_pca, labels_test)
+    y_pred = classifier.predict(dataset_test_pca, labels_test_mapped_to_labels_train)
 
     # dataset_test = np.array(dataset_test_pca)
     # for i in range(dataset_test.shape[0]):
@@ -105,4 +112,4 @@ if __name__ == '__main__':
         images, labels_test, names_test = read_images(path)
         if images is None:
             continue
-        test_with_svm(images, classifier, preprocessing, pca_processing, labels_test=labels_test, names_test=names_test, names=names)
+        test_with_svm(images, classifier, preprocessing, pca_processing, labels_test=labels_test, labels_train=labels_train, names_test=names_test, names=names)
