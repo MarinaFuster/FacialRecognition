@@ -15,40 +15,46 @@ def init_cli():
     print("Welcome!")
     print(f.renderText('FaceRecognition'))
     print("In order to quit write exit.")
+    print("IMPORTANT:")
+    print("1. In order to make things simple, labels should be in the filename.")
+    print("2. Images should be 256x256 pixels, in .jpg extension\n")
 
 
 def get_training_dataset():
     should_end = False
     init_cli()
     is_pre_trained = 'yes'
-    dataset_path, labels_path, dataset_train, labels_train, names = None, None, None, None, None
+    dataset_path, dataset_train, labels_train, names = None, None, None, None
     while not should_end:
         is_pre_trained = input("Do you wish to train with our pre trained network? (Yes/No): ")
         if is_pre_trained.lower() != 'yes' and is_pre_trained.lower() != 'no':
             print("No such option <:(")
             continue
         if is_pre_trained.lower() == 'no':
-            print("IMPORTANT: To read labels in the correct order, it is assumed that the order of labels "
-                  "corresponds to the photos in alphabetical order")
             dataset_path = input("Enter path to images")
             if not Path(dataset_path).exists():
                 print("No such file <:(")
                 dataset_path = None
             else:
-                labels_path = input("Enter path to images labels (.csv)")
-                if not Path(labels_path).exists():
-                    print("No such file <:(")
-                    labels_path = None
-                else:
-                    should_end = True
+                should_end = True
+            # Labels can be an input to the program through a separate .csv
+            # Right now we assume labels are in the filename
+            # else:
+            #     labels_path = input("Enter path to images labels (.csv)")
+            #     print("IMPORTANT: To read labels in the correct order, it is assumed that the order of labels "
+            #     "corresponds to the photos in alphabetical order")
+            #     if not Path(labels_path).exists():
+            #         print("No such file <:(")
+            #         labels_path = None
+            #     else:
+            #         should_end = True
         else:
             should_end = True
 
     if is_pre_trained.lower() == 'yes':
         dataset_train, labels_train, names = load_images()
-    if dataset_path is not None and labels_path is not None:
-        dataset_train = read_images(dataset_path)
-        labels_train = read_labels(labels_path)
+    if dataset_path is not None:
+        dataset_train, labels_train, names = read_images(dataset_path)
 
     return dataset_train, labels_train, names
 
@@ -80,7 +86,7 @@ def read_images(path):
     if not file.is_dir():
         images.append(np.array(Image.open(path), dtype=np.float))
         labels_from_filename.append(0)
-        names_from_filename = [re.findall(r'[a-z]+', file.name)[0]] # ache
+        names_from_filename = [re.findall(r'[a-z]+', file.name)[0]]
     else:
         # Access all JPG files in directory
         DATA_PATH = str(path)+"/"
@@ -97,7 +103,7 @@ def read_images(path):
             images.append(np.array(Image.open(DATA_PATH + im), dtype=np.float))
             name = re.findall(r'[a-z]+', im)[0]
             labels_from_filename.append(names_from_filename.index(name))
-    return images, labels_from_filename, names_from_filename
+    return np.array(images), np.array(labels_from_filename), np.array(names_from_filename)
 
 
 def read_labels(path):

@@ -47,12 +47,13 @@ def train_with_svm(dataset_train, labels_train, classifier, is_pca):
                                       dataset_train.shape[1], dataset_train.shape[2], dataset_train.shape[3])
 
     # Train classifier with default C and gamma values
-    classifier.train_classifier(pca_processing.training_set, labels_train)\
+    classifier.train_classifier(pca_processing.training_set, labels_train)
 
     return preprocessing, pca_processing
 
 
-def test_with_svm(dataset_test, classifier, preprocessing, pca_processing, labels_test, labels_train,  names_test, names):
+def test_with_svm(dataset_test, classifier, preprocessing, pca_processing, labels_test, labels_train, names_test,
+                  names):
     # Apply PCA transformation to testing data
     dataset_test_pca = preprocess_dataset(pca_processing, preprocessing, dataset_test)
 
@@ -77,7 +78,9 @@ def test_with_svm(dataset_test, classifier, preprocessing, pca_processing, label
     #     pca_processing.reconstruct_image(dataset_test[i], names_test[labels_test[i]], names[y_pred[i]])
 
     # To obtain a more readable output
-    print_metrics(y_pred, names, labels_test, labels_test_mapped_to_labels_train, names_test, testing_with_training_dataset)
+    print_metrics(y_pred, names, labels_test, labels_test_mapped_to_labels_train, names_test,
+                  testing_with_training_dataset)
+
 
 if __name__ == '__main__':
 
@@ -104,4 +107,5 @@ if __name__ == '__main__':
         images, labels_test, names_test = read_images(path)
         if images is None:
             continue
-        test_with_svm(images, classifier, preprocessing, pca_processing, labels_test=labels_test, labels_train=labels_train, names_test=names_test, names=names)
+        test_with_svm(images, classifier, preprocessing, pca_processing, labels_test=labels_test,
+                      labels_train=labels_train, names_test=names_test, names=names)
