@@ -1,12 +1,11 @@
-import csv
-
 from numpy import genfromtxt
-
+import numpy as np
 from data_loading import load_images
 from pathlib import Path
-from glob import glob
 from PIL import Image
 from pyfiglet import Figlet
+import os
+import re
 
 def init_cli():
     f = Figlet(font='slant')
@@ -55,13 +54,29 @@ def read_images(path):
         print("No such file <:(")
         return None
     images = []
-    if file.is_dir():
-        filenames = glob(f"{path}/*.jpg")
-        for f in filenames:
-            images.append(Image.open(f))
+    labels_from_filename = []
+
+    if not file.is_dir():
+        images.append(np.array(Image.open(path), dtype=np.float))
+        labels_from_filename.append(re.findall(r'[a-z]+', file.name))
+        names_from_filename = [re.findall(r'[a-z]+', file.name)] # ache
     else:
-        images.append(Image.open(path))
-    return images
+        # Access all JPG files in directory
+        DATA_PATH = str(path)+"/"
+        allfiles = os.listdir(DATA_PATH)
+        imlist = [filename for filename in allfiles if filename[-4:] in [".jpg", ".JPG"]]
+
+        # Translate names in JPG files to labels
+        names_from_filename = [re.findall(r'[a-z]+', filename)[0] for filename in allfiles if filename[-4:] in [".jpg", ".JPG"]]
+        names_from_filename = list(dict.fromkeys(names_from_filename))
+        names_from_filename.sort()
+
+        for im in imlist:
+            # images will be an array of (256,256,3) numpy arrays
+            images.append(np.array(Image.open(DATA_PATH + im), dtype=np.float))
+            name = re.findall(r'[a-z]+', im)[0]
+            labels_from_filename.append(names_from_filename.index(name))
+    return images, labels_from_filename, names_from_filename
 
 
 def read_labels(path):
