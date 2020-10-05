@@ -1,9 +1,9 @@
 import matplotlib.pyplot as plt
 from sklearn import datasets
 from sklearn import decomposition
-from sklearn import metrics
 from sklearn import svm
 from sklearn.model_selection import train_test_split
+from sklearn import metrics
 
 
 class Classifier:
@@ -20,11 +20,8 @@ class Classifier:
     def train_classifier(self, X_train_pca, y_train):
         self.clf.fit(X_train_pca, y_train)
 
-    def predict(self, X_test, y_test=None):
-        y_pred = self.clf.predict(X_test)
-        if y_test is not None:
-            print(metrics.classification_report(y_test, y_pred))
-        return y_pred
+    def predict(self, X_test):
+        return self.clf.predict(X_test)
 
 
 if __name__ == '__main__':

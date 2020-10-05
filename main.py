@@ -1,6 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
-
+from metrics import print_metrics
 from cli import get_training_dataset, read_images, is_pca
 from eigen import calculate_eigenvectors
 from preprocessing import PreProcessing, PCAPreprocessing, KPCAPreprocessing
@@ -58,32 +58,26 @@ def test_with_svm(dataset_test, classifier, preprocessing, pca_processing, label
 
     labels_test_mapped_to_labels_train = []
 
+    testing_with_training_dataset = True
     for label in labels_test:
-        labels_test_mapped_to_labels_train.append(list(names).index(names_test[label]))
+        try:
+            label_mapped = list(names).index(names_test[label])
+        except:
+            # If name is not in training dataset, then label is not mapped
+            label_mapped = label
+            # We can assume that user is not testing the dataset
+            testing_with_training_dataset = False
+        labels_test_mapped_to_labels_train.append(label_mapped)
 
     # Test classifier
-    y_pred = classifier.predict(dataset_test_pca, labels_test_mapped_to_labels_train)
+    y_pred = classifier.predict(dataset_test_pca)
 
     # dataset_test = np.array(dataset_test_pca)
     # for i in range(dataset_test.shape[0]):
     #     pca_processing.reconstruct_image(dataset_test[i], names_test[labels_test[i]], names[y_pred[i]])
 
     # To obtain a more readable output
-    corrects = 0
-    for i in range(len(y_pred)):
-        if names_test is not None:
-            print(f"Predicting label: {names_test[labels_test[i]]}. Face belongs to ... {names[int(y_pred[i])]}")
-        if names_test[labels_test[i]] == names[int(y_pred[i])]:
-            corrects = corrects + 1
-    print(f"{corrects} out of {y_pred.shape[0]} were predicted properly")
-
-    # Another way to show results
-    # count = 0
-    # processed_images = preprocess_dataset(pca_processing, preprocessing, images)
-    # for processed_image in processed_images:
-    #     y_pred = classifier.predict(processed_image)
-    #     print(f"{filenames[count]} predicted as {names[y_pred]}")
-    #     count += 1
+    print_metrics(y_pred, names, labels_test_mapped_to_labels_train, names_test, testing_with_training_dataset)
 
 if __name__ == '__main__':
 
