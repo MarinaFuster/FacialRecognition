@@ -105,7 +105,7 @@ if __name__ == '__main__':
     # Testing classifier
     print("Training done! Now you can try the face recognition (or write exit to exit)")
     while not should_end:
-        path = input("Enter path to images")
+        path = input("Enter path to images or path to image: ")
         if path.lower() == "exit":
             should_end = True
             continue

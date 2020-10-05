@@ -23,7 +23,7 @@ def get_training_dataset():
     is_pre_trained = 'yes'
     dataset_path, labels_path, dataset_train, labels_train, names = None, None, None, None, None
     while not should_end:
-        is_pre_trained = input("Do you wish to train with our pre trained network? (Yes/No)")
+        is_pre_trained = input("Do you wish to train with our pre trained network? (Yes/No): ")
         if is_pre_trained.lower() != 'yes' and is_pre_trained.lower() != 'no':
             print("No such option <:(")
             continue
@@ -57,7 +57,7 @@ def is_pca():
     shouldEnd = False
     pca = True
     while not shouldEnd:
-        kpca_or_pca = input("Do you wish to apply PCA or KPCA for data pre-processing?")
+        kpca_or_pca = input("Do you wish to apply PCA or KPCA for data pre-processing?: ")
         if kpca_or_pca.lower() != 'pca' and kpca_or_pca.lower() != 'kpca':
             print("No such opcion <:(")
             continue
