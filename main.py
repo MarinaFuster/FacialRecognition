@@ -61,8 +61,6 @@ def test_with_svm(dataset_test, classifier, preprocessing, pca_processing, label
     for label in labels_test:
         labels_test_mapped_to_labels_train.append(list(names).index(names_test[label]))
 
-    print(labels_test_mapped_to_labels_train)
-
     # Test classifier
     y_pred = classifier.predict(dataset_test_pca, labels_test_mapped_to_labels_train)
 
