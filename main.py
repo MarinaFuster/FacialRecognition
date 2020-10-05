@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-from cli import get_training_dataset, read_images
+from cli import get_training_dataset, read_images, is_pca
 from eigen import calculate_eigenvectors
 from preprocessing import PreProcessing, PCAPreprocessing, KPCAPreprocessing
 from sklearn.decomposition import PCA
@@ -18,13 +18,14 @@ def preprocess_dataset(pca_processing, preprocessing, dataset):
     return ret_list
 
 
-def train_with_svm(dataset_train, labels_train, classifier):
+def train_with_svm(dataset_train, labels_train, classifier, is_pca):
     preprocessing = PreProcessing(dataset_train, dataset_train.shape[1], dataset_train.shape[2], dataset_train.shape[3])
 
     # Over this matrix we need to calculate eigenvectorss
-    # C_matrix = np.matmul(preprocessing.training_set, preprocessing.training_set.T)
-    K = KPCAPreprocessing.rbf_kernel_pca(preprocessing.training_set)
-    C_matrix = K
+    if is_pca:
+        C_matrix = np.matmul(preprocessing.training_set, preprocessing.training_set.T)
+    else:
+        C_matrix = KPCAPreprocessing.rbf_kernel_pca(preprocessing.training_set)
 
     # From here ...
     pca_module = PCA(n_components=dataset_train.shape[0])
@@ -87,9 +88,12 @@ if __name__ == '__main__':
     if dataset_train is None or labels_train is None:
         should_end = True
 
+    # Applying PCA or KPCA
+    is_pca = is_pca()
+
     # Training classifier
     classifier = Classifier()
-    preprocessing, pca_processing = train_with_svm(dataset_train, labels_train, classifier)
+    preprocessing, pca_processing = train_with_svm(dataset_train, labels_train, classifier, is_pca)
 
     # Testing classifier
     print("Training done! Now you can try the face recognition (or write exit to exit)")

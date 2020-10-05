@@ -1,5 +1,7 @@
-from numpy import genfromtxt
+import csv
 import numpy as np
+from numpy import genfromtxt
+
 from data_loading import load_images
 from pathlib import Path
 from PIL import Image
@@ -7,22 +9,25 @@ from pyfiglet import Figlet
 import os
 import re
 
+
 def init_cli():
     f = Figlet(font='slant')
     print("Welcome!")
     print(f.renderText('FaceRecognition'))
     print("In order to quit write exit.")
 
+
 def get_training_dataset():
     should_end = False
     init_cli()
-    is_pre_trained = 'Yes'
+    is_pre_trained = 'yes'
     dataset_path, labels_path, dataset_train, labels_train, names = None, None, None, None, None
     while not should_end:
         is_pre_trained = input("Do you wish to train with our pre trained network? (Yes/No)")
-        if is_pre_trained != 'Yes' and is_pre_trained != 'No':
+        if is_pre_trained.lower() != 'yes' and is_pre_trained.lower() != 'no':
             print("No such option <:(")
-        if is_pre_trained == 'No':
+            continue
+        if is_pre_trained.lower() == 'no':
             print("IMPORTANT: To read labels in the correct order, it is assumed that the order of labels "
                   "corresponds to the photos in alphabetical order")
             dataset_path = input("Enter path to images")
@@ -39,13 +44,29 @@ def get_training_dataset():
         else:
             should_end = True
 
-    if is_pre_trained == 'Yes':
+    if is_pre_trained.lower() == 'yes':
         dataset_train, labels_train, names = load_images()
     if dataset_path is not None and labels_path is not None:
         dataset_train = read_images(dataset_path)
         labels_train = read_labels(labels_path)
 
     return dataset_train, labels_train, names
+
+
+def is_pca():
+    shouldEnd = False
+    pca = True
+    while not shouldEnd:
+        kpca_or_pca = input("Do you wish to apply PCA or KPCA for data pre-processing?")
+        if kpca_or_pca.lower() != 'pca' and kpca_or_pca.lower() != 'kpca':
+            print("No such opcion <:(")
+            continue
+        if kpca_or_pca.lower() == 'pca':
+            shouldEnd = True
+        else:
+            shouldEnd = True
+            pca = False
+    return pca
 
 
 def read_images(path):
@@ -87,4 +108,4 @@ def read_labels(path):
     if file.is_dir():
         print("Labels should be a file, not a directory")
         return None
-    return genfromtxt(file, delimiter=',')
+    return np.array(genfromtxt(file, delimiter=','))
