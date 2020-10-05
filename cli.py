@@ -79,8 +79,8 @@ def read_images(path):
 
     if not file.is_dir():
         images.append(np.array(Image.open(path), dtype=np.float))
-        labels_from_filename.append(re.findall(r'[a-z]+', file.name))
-        names_from_filename = [re.findall(r'[a-z]+', file.name)] # ache
+        labels_from_filename.append(0)
+        names_from_filename = [re.findall(r'[a-z]+', file.name)[0]] # ache
     else:
         # Access all JPG files in directory
         DATA_PATH = str(path)+"/"
