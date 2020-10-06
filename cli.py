@@ -27,6 +27,9 @@ def get_training_dataset():
     dataset_path, dataset_train, labels_train, names = None, None, None, None
     while not should_end:
         is_pre_trained = input("Do you wish to train with our pre trained network? (Yes/No): ")
+        if is_pre_trained.lower() == "exit":
+            should_end = True
+            continue
         if is_pre_trained.lower() != 'yes' and is_pre_trained.lower() != 'no':
             print("No such option <:(")
             continue
@@ -60,20 +63,43 @@ def get_training_dataset():
 
 
 def is_pca():
-    shouldEnd = False
-    pca = True
-    while not shouldEnd:
+    should_end = False
+    pca = None
+    while not should_end:
         kpca_or_pca = input("Do you wish to apply PCA or KPCA for data pre-processing?: ")
+        if kpca_or_pca.lower() == "exit":
+            should_end = True
+            continue
         if kpca_or_pca.lower() != 'pca' and kpca_or_pca.lower() != 'kpca':
             print("No such opcion <:(")
             continue
         if kpca_or_pca.lower() == 'pca':
-            shouldEnd = True
+            pca = True
+            should_end = True
         else:
-            shouldEnd = True
+            should_end = True
             pca = False
     return pca
 
+
+def show_metrics():
+    should_end = False
+    show_metrics = None
+    while not should_end:
+        show_metrics = input("Do you wish to see testing metrics? (Yes/No): ")
+        if show_metrics.lower() == 'exit':
+            should_end = True
+            continue
+        if show_metrics.lower() != 'yes' and show_metrics.lower() != 'no':
+            print("No such opcion <:(")
+            continue
+        if show_metrics.lower() == 'yes':
+            should_end = True
+            show_metrics = True
+        else:
+            should_end = True
+            show_metrics = False
+    return show_metrics
 
 def read_images(path):
     file = Path(path)

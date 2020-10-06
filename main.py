@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from metrics import print_metrics
-from cli import get_training_dataset, read_images, is_pca
+from cli import get_training_dataset, read_images, is_pca, show_metrics
 from eigen import calculate_eigenvectors
 from preprocessing import PreProcessing, PCAPreprocessing, KPCAPreprocessing
 from sklearn.decomposition import PCA
@@ -52,8 +52,8 @@ def train_with_svm(dataset_train, labels_train, classifier, is_pca):
     return preprocessing, pca_processing
 
 
-def test_with_svm(dataset_test, classifier, preprocessing, pca_processing, labels_test, labels_train, names_test,
-                  names):
+def test_with_svm(dataset_test, classifier, preprocessing, pca_processing, show_testing_metrics,
+                  labels_test, labels_train, names_test, names):
     # Apply PCA transformation to testing data
     dataset_test_pca = preprocess_dataset(pca_processing, preprocessing, dataset_test)
 
@@ -68,6 +68,7 @@ def test_with_svm(dataset_test, classifier, preprocessing, pca_processing, label
             label_mapped = label
             # We can assume that user is not testing the dataset
             testing_with_training_dataset = False
+            show_testing_metrics = False
         labels_test_mapped_to_labels_train.append(label_mapped)
 
     # Test classifier
@@ -77,28 +78,33 @@ def test_with_svm(dataset_test, classifier, preprocessing, pca_processing, label
     # for i in range(dataset_test.shape[0]):
     #     pca_processing.reconstruct_image(dataset_test[i], names_test[labels_test[i]], names[y_pred[i]])
 
-    # To obtain a more readable output
+    # To obtain metrics
     print_metrics(y_pred, names, labels_test, labels_test_mapped_to_labels_train, names_test,
-                  testing_with_training_dataset)
+                  testing_with_training_dataset, show_testing_metrics)
 
 
 if __name__ == '__main__':
 
     # Initializing CLI Interface and obtaining training dataset
-    should_end = False
     dataset_train, labels_train, names = get_training_dataset()
-    if dataset_train is None or labels_train is None:
-        should_end = True
+    should_end = True if dataset_train is None or labels_train is None else False
 
     # Applying PCA or KPCA
     is_pca = is_pca()
+    should_end = True if is_pca is None else False
+
+    # Showing metrics
+    show_testing_metrics = show_metrics()
+    should_end = True if show_metrics is None else False
 
     # Training classifier
     classifier = Classifier()
-    preprocessing, pca_processing = train_with_svm(dataset_train, labels_train, classifier, is_pca)
+    preprocessing, pca_processing = None, None
+    if not should_end:
+        preprocessing, pca_processing = train_with_svm(dataset_train, labels_train, classifier, is_pca)
+        print("Training done! Now you can try the face recognition (or write exit to exit)")
 
     # Testing classifier
-    print("Training done! Now you can try the face recognition (or write exit to exit)")
     while not should_end:
         path = input("Enter path to images or path to image: ")
         if path.lower() == "exit":
@@ -107,5 +113,8 @@ if __name__ == '__main__':
         images, labels_test, names_test = read_images(path)
         if images is None:
             continue
-        test_with_svm(images, classifier, preprocessing, pca_processing, labels_test=labels_test,
-                      labels_train=labels_train, names_test=names_test, names=names)
+        if images.shape[0] == 0:
+            print("There are no images to test.")
+            continue
+        test_with_svm(images, classifier, preprocessing, pca_processing, show_testing_metrics,
+                      labels_test=labels_test, labels_train=labels_train, names_test=names_test, names=names)
