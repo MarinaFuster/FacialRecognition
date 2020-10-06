@@ -6,6 +6,7 @@ from data_loading import load_images
 from pathlib import Path
 from PIL import Image
 from pyfiglet import Figlet
+from image_resize import resizeImage
 import os
 import re
 
@@ -126,7 +127,13 @@ def read_images(path):
 
         for im in imlist:
             # images will be an array of (256,256,3) numpy arrays
-            images.append(np.array(Image.open(DATA_PATH + im), dtype=np.float))
+            image = Image.open(DATA_PATH+im)
+            width, height = image.size
+            if width != 256 or height != 256:
+                resizeImage(DATA_PATH+im)
+                image = Image.open(DATA_PATH + im)
+                print(f"Image {DATA_PATH + im} has been resized to 256x256")
+            images.append(np.array(image, dtype=np.float))
             name = re.findall(r'[a-z]+', im)[0]
             labels_from_filename.append(names_from_filename.index(name))
     return np.array(images), np.array(labels_from_filename), np.array(names_from_filename)
