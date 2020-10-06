@@ -3,4 +3,6 @@ def resizeImage(filepath):
     pixels = 256
     img = Image.open(filepath)
     img = img.resize((pixels,pixels), Image.ANTIALIAS)
-    img.save(filepath) 
+    img.save(filepath)
+
+resizeImage("detection/person0.jpg")
