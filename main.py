@@ -37,6 +37,7 @@ def train_with_svm(dataset_train, labels_train, classifier, is_pca):
         accumulated = accumulated + pca_module.explained_variance_ratio_[i]
         i = i + 1
     print(f"In order to win {round(accumulated, 4)} variance ratio we will use {i} eigenvectors")
+    print("Training...")
 
     # Grab the first i eigenvectors
     eigenvectors = calculate_eigenvectors(C_matrix)[:i+1]
