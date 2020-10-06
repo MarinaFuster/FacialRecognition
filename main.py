@@ -41,7 +41,7 @@ def train_with_svm(dataset_train, labels_train, classifier, is_pca, names):
     # Grab the first i eigenvectors
     eigenvectors = calculate_eigenvectors(C_matrix)[:i+1]
 
-    # Apply PCA transformation to training data
+    # Apply PCA transformation to training training_data
     pca_processing = PCAPreprocessing(preprocessing.training_set, preprocessing.avg_face, eigenvectors,
                                       dataset_train.shape[1], dataset_train.shape[2], dataset_train.shape[3], names, labels_train)
 
@@ -54,7 +54,7 @@ def train_with_svm(dataset_train, labels_train, classifier, is_pca, names):
 
 def test_with_svm(dataset_test, classifier, preprocessing, pca_processing, show_testing_metrics,
                   labels_test, labels_train, names_test, names):
-    # Apply PCA transformation to testing data
+    # Apply PCA transformation to testing training_data
     dataset_test_pca = preprocess_dataset(pca_processing, preprocessing, dataset_test)
 
     labels_test_mapped_to_labels_train = []
