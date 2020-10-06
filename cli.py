@@ -35,7 +35,7 @@ def get_training_dataset():
             print("No such option <:(")
             continue
         if is_pre_trained.lower() == 'no':
-            dataset_path = input("Enter path to images")
+            dataset_path = input("Enter path to images: ")
             if not Path(dataset_path).exists():
                 print("No such file <:(")
                 dataset_path = None
