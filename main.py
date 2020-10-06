@@ -36,6 +36,7 @@ def train_with_svm(dataset_train, labels_train, classifier, is_pca, names):
         accumulated = accumulated + pca_module.explained_variance_ratio_[i]
         i = i + 1
     print(f"In order to win {round(accumulated, 4)} variance ratio we will use {i} eigenvectors")
+    print("Training...")
 
     # Grab the first i eigenvectors
     eigenvectors = calculate_eigenvectors(C_matrix)[:i+1]
@@ -47,6 +48,7 @@ def train_with_svm(dataset_train, labels_train, classifier, is_pca, names):
     # Train classifier with default C and gamma values
     classifier.train_classifier(pca_processing.training_set, labels_train)
 
+    classifier.save(preprocessing, pca_processing)
     return preprocessing, pca_processing
 
 
@@ -71,6 +73,7 @@ def test_with_svm(dataset_test, classifier, preprocessing, pca_processing, show_
 
     # Test classifier
     y_pred = classifier.predict(dataset_test_pca)
+    # classifier.save(preprocessing, pca_processing)
 
     # dataset_test = np.array(dataset_test_pca)
     # for i in range(dataset_test.shape[0]):
@@ -79,6 +82,8 @@ def test_with_svm(dataset_test, classifier, preprocessing, pca_processing, show_
     # To obtain metrics
     print_metrics(y_pred, names, labels_test, labels_test_mapped_to_labels_train, names_test,
                   testing_with_training_dataset, show_testing_metrics)
+
+    return [names[int(y_pred[i])] for i in range(len(y_pred))]
 
 
 if __name__ == '__main__':
