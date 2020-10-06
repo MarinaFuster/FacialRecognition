@@ -134,6 +134,7 @@ def read_images(path):
                 image = Image.open(DATA_PATH + im)
                 print(f"Image {DATA_PATH + im} has been resized to 256x256")
             images.append(np.array(image, dtype=np.float))
+
             name = re.findall(r'[a-z]+', im)[0]
             labels_from_filename.append(names_from_filename.index(name))
     return np.array(images), np.array(labels_from_filename), np.array(names_from_filename)

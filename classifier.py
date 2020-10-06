@@ -4,6 +4,7 @@ from sklearn import decomposition
 from sklearn import svm
 from sklearn.model_selection import train_test_split
 from sklearn import metrics
+from joblib import dump, load
 
 
 class Classifier:
@@ -22,6 +23,11 @@ class Classifier:
 
     def predict(self, X_test):
         return self.clf.predict(X_test)
+
+    def save(self, preprocessing, pca_processing):
+        dump(self.clf, 'models/classifier.jolib')
+        dump(preprocessing, "models/preprocessing.jolib")
+        dump(pca_processing, "models/pca_processing.jolib")
 
 
 if __name__ == '__main__':
