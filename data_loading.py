@@ -7,7 +7,7 @@ import re
 # IMPORTANT
 # in this folder, only already functional faces will be stored.
 # If you need something like face detection, DO NOT store those images here
-DATA_PATH = "data/"
+DATA_PATH = "training_data/"
 
 
 def load_images():
