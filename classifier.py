@@ -53,7 +53,7 @@ if __name__ == '__main__':
     # plt.show()
 
     # Transform train and test datasets using trained PCA algorithm
-    # Apply PCA transformation to training data
+    # Apply PCA transformation to training training_data
     X_train_pca = pca.transform(X_train)
     X_test_pca = pca.transform(X_test)
 

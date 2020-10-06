@@ -66,5 +66,5 @@ def qr_eig_algorithm(A):
 
 
 def calculate_eigenvectors(matrix):
-    _, vec = qr_eig_algorithm(matrix)
-    return vec
+    eig_val, vec = qr_eig_algorithm(matrix)
+    return eig_val, vec

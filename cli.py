@@ -67,7 +67,7 @@ def is_pca():
     should_end = False
     pca = None
     while not should_end:
-        kpca_or_pca = input("Do you wish to apply PCA or KPCA for data pre-processing?: ")
+        kpca_or_pca = input("Do you wish to apply PCA or KPCA for training_data pre-processing?: ")
         if kpca_or_pca.lower() == "exit":
             should_end = True
             continue
