@@ -38,9 +38,8 @@ def train_with_svm(dataset_train, labels_train, classifier, is_pca):
         i = i + 1
     print(f"In order to win {round(accumulated, 4)} variance ratio we will use {i} eigenvectors")
 
-    eigenvectors = pca_module.components_[list(range(0, i))]
-    # eigenvectors = calculate_eigenvectors(list(range(0, i)))
-    # ... to here, must be replaced with eigenvectors calculated by eigen_calc
+    # Grab the first i eigenvectors
+    eigenvectors = calculate_eigenvectors(C_matrix)[:i+1]
 
     # Apply PCA transformation to training data
     pca_processing = PCAPreprocessing(preprocessing.training_set, preprocessing.avg_face, eigenvectors,
