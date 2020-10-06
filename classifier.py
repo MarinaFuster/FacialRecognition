@@ -17,8 +17,8 @@ class Classifier:
     def __init__(self, C=1., gamma=0.001):
         self.clf = svm.SVC(C=C, gamma=gamma)
 
-    def train_classifier(self, X_train_pca, y_train):
-        self.clf.fit(X_train_pca, y_train)
+    def train_classifier(self, X_train, y_train):
+        self.clf.fit(X_train, y_train)
 
     def predict(self, X_test):
         return self.clf.predict(X_test)
@@ -55,6 +55,6 @@ if __name__ == '__main__':
     # of this class
     classifier = Classifier()
     classifier.train_classifier(X_train_pca, y_train)
-    y_pred = classifier.predict(X_test_pca, y_test)
+    y_pred = classifier.predict(X_test_pca)
     # print(y_test)
     # print(y_pred)
