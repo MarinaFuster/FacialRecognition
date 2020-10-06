@@ -32,11 +32,11 @@ def train_with_svm(dataset_train, labels_train, classifier, is_pca, names):
 
     # Uses QR method to get eigenvalues and eigenvectors
     eigenvalues, eigenvec = calculate_eigenvectors(C_matrix)
-    total = np.sum(eigenvalues)
+    total = np.sum(np.abs(eigenvalues))
 
     accumulated = 0
     i = 0
-    while accumulated < 0.95:
+    while accumulated < 0.65:
         accumulated = accumulated + eigenvalues[i]/total
         i = i + 1
     print(f"In order to win {round(accumulated, 4)} variance ratio we will use {i} eigenvectors")
