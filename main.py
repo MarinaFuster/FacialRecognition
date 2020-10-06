@@ -30,16 +30,20 @@ def train_with_svm(dataset_train, labels_train, classifier, is_pca, names):
     pca_module = PCA(n_components=dataset_train.shape[0])
     pca_module.fit(C_matrix)
 
+    # Uses QR method to get eigenvalues and eigenvectors
+    eigenvalues, eigenvec = calculate_eigenvectors(C_matrix)
+    total = np.sum(eigenvalues)
+
     accumulated = 0
     i = 0
     while accumulated < 0.95:
-        accumulated = accumulated + pca_module.explained_variance_ratio_[i]
+        accumulated = accumulated + eigenvalues[i]/total
         i = i + 1
     print(f"In order to win {round(accumulated, 4)} variance ratio we will use {i} eigenvectors")
     print("Training...")
 
     # Grab the first i eigenvectors
-    eigenvectors = calculate_eigenvectors(C_matrix)[:i+1]
+    eigenvectors = eigenvec[:i+1]
 
     # Apply PCA transformation to training data
     pca_processing = PCAPreprocessing(preprocessing.training_set, preprocessing.avg_face, eigenvectors,
