@@ -1,9 +1,9 @@
 import matplotlib.pyplot as plt
 from sklearn import datasets
 from sklearn import decomposition
-from sklearn import metrics
 from sklearn import svm
 from sklearn.model_selection import train_test_split
+from sklearn import metrics
 
 
 class Classifier:
@@ -14,16 +14,14 @@ class Classifier:
     # against maximization of the decision function’s margin. For larger values of C, a smaller margin will be
     # accepted if the decision function is better at classifying all training points correctly. A lower C will
     # encourage a larger margin, therefore a simpler decision function, at the cost of training accuracy.
-    def __init__(self, C=10., gamma=0.001):
+    def __init__(self, C=1., gamma=0.001):
         self.clf = svm.SVC(C=C, gamma=gamma)
 
     def train_classifier(self, X_train_pca, y_train):
         self.clf.fit(X_train_pca, y_train)
 
-    def predict(self, X_test, y_test):
-        y_pred = self.clf.predict(X_test)
-        print(metrics.classification_report(y_test, y_pred))
-        return y_pred
+    def predict(self, X_test):
+        return self.clf.predict(X_test)
 
 
 if __name__ == '__main__':

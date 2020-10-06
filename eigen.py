@@ -63,3 +63,8 @@ def qr_eig_algorithm(A):
     sort = np.argsort(np.absolute(eig_val))[::-1]
     # We return the transpose because we want each row to give an eigenvector (instead of each column)
     return eig_val[sort], eig_vec[sort]
+
+
+def calculate_eigenvectors(matrix):
+    _, vec = qr_eig_algorithm(matrix)
+    return vec
