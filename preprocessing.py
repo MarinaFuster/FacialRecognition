@@ -66,7 +66,7 @@ class PreProcessing():
         return standardize.flatten()
 
 class PCAPreprocessing():
-    def __init__(self, dataset, avg_face, eigenvectors, h, w, d):
+    def __init__(self, dataset, avg_face, eigenvectors, h, w, d, names, labels_train):
         self.h = h
         self.w = w
         self.d = d
@@ -74,6 +74,8 @@ class PCAPreprocessing():
         self.eigenvectors = eigenvectors
         self.eigenfaces = self.__get_eigenfaces(dataset, eigenvectors)
         self.training_set = self.__apply_pca(dataset)
+        self.names = names
+        self.labels_train = labels_train
         if self.d == 3:
             self.__save_eigenfaces()
             self.__save_dataset_projections()
@@ -113,9 +115,21 @@ class PCAPreprocessing():
         X = self.training_set[:,0]
         Y = self.training_set[:,1]
         Z = self.training_set[:,2]
-        
+
         ax = plt.axes(projection = "3d")
-        ax.scatter3D(X,Y,Z)
+
+        for i in range(len(X)):
+            ax.scatter(X[i],Y[i],Z[i], color= 'b')
+            ax.text(X[i],Y[i],Z[i], '%s'%(self.names[self.labels_train[i]]),size=7,zorder= 1, color='k')
+        
+        # ax = plt.axes(projection = "3d")
+        # ax.scatter3D(X,Y,Z)
+    
+
+        ax.set_xlabel("First component")
+        ax.set_ylabel("Second component")
+        ax.set_zlabel("Third component")
+
         
         plt.title("Projection of images on eigenface dimensional space")
         plt.savefig("eigenfaces/dataset_projection.png")

@@ -18,9 +18,8 @@ def preprocess_dataset(pca_processing, preprocessing, dataset):
     return ret_list
 
 
-def train_with_svm(dataset_train, labels_train, classifier, is_pca):
+def train_with_svm(dataset_train, labels_train, classifier, is_pca, names):
     preprocessing = PreProcessing(dataset_train, dataset_train.shape[1], dataset_train.shape[2], dataset_train.shape[3])
-
     # Over this matrix we need to calculate eigenvectorss
     if is_pca:
         C_matrix = np.matmul(preprocessing.training_set, preprocessing.training_set.T)
@@ -43,7 +42,7 @@ def train_with_svm(dataset_train, labels_train, classifier, is_pca):
 
     # Apply PCA transformation to training data
     pca_processing = PCAPreprocessing(preprocessing.training_set, preprocessing.avg_face, eigenvectors,
-                                      dataset_train.shape[1], dataset_train.shape[2], dataset_train.shape[3])
+                                      dataset_train.shape[1], dataset_train.shape[2], dataset_train.shape[3], names, labels_train)
 
     # Train classifier with default C and gamma values
     classifier.train_classifier(pca_processing.training_set, labels_train)
@@ -100,7 +99,7 @@ if __name__ == '__main__':
     classifier = Classifier()
     preprocessing, pca_processing = None, None
     if not should_end:
-        preprocessing, pca_processing = train_with_svm(dataset_train, labels_train, classifier, is_pca)
+        preprocessing, pca_processing = train_with_svm(dataset_train, labels_train, classifier, is_pca, names)
         print("Training done! Now you can try the face recognition (or write exit to exit)")
 
     # Testing classifier
