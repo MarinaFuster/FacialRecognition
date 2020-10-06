@@ -158,6 +158,104 @@ class PCAPreprocessing():
         plt.clf()
             
 class KPCAPreprocessing():
+
+    def __init__(self, dataset, avg_face, eigenvectors, h, w, d, names, labels_train, gamma=0.000001):
+        self.h = h
+        self.w = w
+        self.d = d
+        self.avg_face = avg_face
+        self.gamma = gamma
+        self.eigenvectors = eigenvectors
+        self.names = names
+        self.labels_train = labels_train
+        self.dataset = dataset
+        self.eigenfaces = self.__get_eigenfaces(dataset, eigenvectors)
+        self.training_set = self.__apply_pca(dataset)
+        if self.d == 3:
+            # self.__save_eigenfaces()
+            self.__save_dataset_projections()
+
+    """ Applies PCA to dataset and returns training set for classifier """
+    def __apply_pca(self, dataset):
+        training_set = []
+        for im in dataset:
+            coords = np.zeros(self.eigenfaces[0].shape)
+            for i in range(self.eigenfaces.shape[0]):
+                norm = np.linalg.norm(dataset[i] - im)
+                coords += self.eigenfaces[i] * exp(-self.gamma * norm * norm) 
+                # coords.append(np.dot(face, im)/np.linalg.norm(face))
+            training_set.append(coords)
+        return np.array(training_set)
+    
+    """ Calculates eigenfaces using dataset and eigenvector that represent some percentage of information.
+        Eigenfaces work as a basis for all images """
+    def __get_eigenfaces(self, dataset, eigenvectors):
+        return eigenvectors
+        # eigenfaces = []
+        # for vector in eigenvectors:
+        #     eigenface = np.zeros(dataset[0].shape)
+        #     for i in range(vector.shape[0]):
+        #         eigenface = eigenface + vector[i]*dataset[i]
+        #     eigenfaces.append(eigenface/np.linalg.norm(eigenface))
+        # return np.array(eigenfaces)
+    
+    """ Eigenfaces are saved in eigenfaces/"""
+    def __save_eigenfaces(self):
+        for i in range(self.eigenfaces.shape[0]):
+            reshaped = np.reshape(self.eigenfaces[i], (self.h, self.w, self.d))*255 + self.avg_face
+            reshaped = reshaped/255
+            plt.imshow(reshaped)
+            plt.savefig(f"eigenfaces/eigenface_{i}.png")
+            plt.clf()
+    
+    """ Plots all elements from training set onto the first three eigenfaces dimensional space """
+    def __save_dataset_projections(self):
+        X = self.training_set[:,0]
+        Y = self.training_set[:,1]
+        Z = self.training_set[:,2]
+
+        ax = plt.axes(projection = "3d")
+
+        for i in range(len(X)):
+            ax.scatter(X[i],Y[i],Z[i], color= 'b')
+            ax.text(X[i],Y[i],Z[i], '%s'%(self.names[self.labels_train[i]]),size=7,zorder= 1, color='k')
+        
+        # ax = plt.axes(projection = "3d")
+        # ax.scatter3D(X,Y,Z)
+    
+
+        ax.set_xlabel("First component")
+        ax.set_ylabel("Second component")
+        ax.set_zlabel("Third component")
+
+        
+        plt.title("Projection of images on eigenface dimensional space")
+        plt.savefig("eigenfaces/dataset_projection.png")
+        plt.clf()
+    
+    """ After an image was regular preprocessed, we call this method to apply PCA.
+        This method returns coords of the test image on defined eigenfaces """
+    def apply_pca(self, image):
+        if image.shape[0] != self.h*self.w*self.d:
+            print("Your image shape should be (256,256,3) flatten")
+            return
+        coords = np.zeros(self.eigenfaces[0].shape)
+        for i in range(self.eigenfaces.shape[0]):
+            norm = np.linalg.norm(self.dataset[i] - image)
+            coords += self.eigenfaces[i] * exp(-self.gamma * norm * norm) 
+        return coords
+    
+    def reconstruct_image(self, pca_coords, label, predicted_label):
+        flatten = np.zeros(self.h*self.w*self.d)
+        for i in range(self.eigenfaces.shape[0]):
+            flatten += pca_coords[i]*self.eigenfaces[i]
+        reshaped = np.reshape(flatten, (self.h, self.w, self.d))*255 + self.avg_face
+        reshaped = reshaped/255
+        plt.title(f"Label: {label}  -  Predicted Label: {predicted_label}")
+        plt.imshow(reshaped)
+        plt.show()
+        plt.clf()
+
     @staticmethod
     def rbf_kernel_pca(dataset, gamma=0.000001):
 
