@@ -26,10 +26,6 @@ def train_with_svm(dataset_train, labels_train, classifier, is_pca, names):
     else:
         C_matrix = KPCAPreprocessing.rbf_kernel_pca(preprocessing.training_set)
 
-    # From here ...
-    pca_module = PCA(n_components=dataset_train.shape[0])
-    pca_module.fit(C_matrix)
-
     # Uses QR method to get eigenvalues and eigenvectors
     eigenvalues, eigenvec = calculate_eigenvectors(C_matrix)
     total = np.sum(np.abs(eigenvalues))
@@ -45,7 +41,6 @@ def train_with_svm(dataset_train, labels_train, classifier, is_pca, names):
     # Grab the first i eigenvectors
     eigenvectors = eigenvec[:i+1]
 
-
     if is_pca:
         # Apply PCA transformation to training training_data
         pca_processing = PCAPreprocessing(preprocessing.training_set, preprocessing.avg_face, eigenvectors,
@@ -53,7 +48,7 @@ def train_with_svm(dataset_train, labels_train, classifier, is_pca, names):
     else:
         # Apply KPCA transformation to training training_data
         pca_processing = KPCAPreprocessing(preprocessing.training_set, preprocessing.avg_face, eigenvectors,
-                                            dataset_train.shape[1], dataset_train.shape[2], dataset_train.shape[3], names, labels_train)
+                                            dataset_train.shape[1], dataset_train.shape[2], dataset_train.shape[3], names, labels_train, C_matrix)
 
     # Train classifier with default C and gamma values
     classifier.train_classifier(pca_processing.training_set, labels_train)

@@ -159,7 +159,7 @@ class PCAPreprocessing():
             
 class KPCAPreprocessing():
 
-    def __init__(self, dataset, avg_face, eigenvectors, h, w, d, names, labels_train, gamma=0.000001):
+    def __init__(self, dataset, avg_face, eigenvectors, h, w, d, names, labels_train, kernel, gamma=0.000001):
         self.h = h
         self.w = w
         self.d = d
@@ -169,23 +169,30 @@ class KPCAPreprocessing():
         self.names = names
         self.labels_train = labels_train
         self.dataset = dataset
+        self.kernel = kernel
         self.eigenfaces = self.__get_eigenfaces(dataset, eigenvectors)
-        self.training_set = self.__apply_pca(dataset)
+        self.training_set = self.__apply_pca(kernel)
         if self.d == 3:
             # self.__save_eigenfaces()
             self.__save_dataset_projections()
 
     """ Applies PCA to dataset and returns training set for classifier """
-    def __apply_pca(self, dataset):
-        training_set = []
-        for im in dataset:
-            coords = np.zeros(self.eigenfaces[0].shape)
-            for i in range(self.eigenfaces.shape[0]):
-                norm = np.linalg.norm(dataset[i] - im)
-                coords += self.eigenfaces[i] * exp(-self.gamma * norm * norm) 
-                # coords.append(np.dot(face, im)/np.linalg.norm(face))
-            training_set.append(coords)
-        return np.array(training_set)
+    def __apply_pca(self, kernel):
+        # training_set = []
+        # for row in kernel:
+        #     coords = []
+        #     for i in range(self.eigenfaces.shape[1]):
+        #         coords.append(np.dot(self.eigenfaces.T[i], row)/np.linalg.norm(self.eigenfaces[i]))
+        #     training_set.append(np.array(coords))
+        return np.dot(kernel, self.eigenfaces.T)
+
+        # [1   2  3  4  5]
+        # [6   7  8  9 10]
+        # [11 12 13 14 15]
+
+        # [1   2  3  4  5]
+        # [6   7  8  9 10]
+        # [11 12 13 14 15]
     
     """ Calculates eigenfaces using dataset and eigenvector that represent some percentage of information.
         Eigenfaces work as a basis for all images """
@@ -239,11 +246,17 @@ class KPCAPreprocessing():
         if image.shape[0] != self.h*self.w*self.d:
             print("Your image shape should be (256,256,3) flatten")
             return
-        coords = np.zeros(self.eigenfaces[0].shape)
+        row = []
+        for i in range(self.dataset):
+            row.append( exp(-self.gamma * np.linalg.norm(image - self.dataset[i])**2 ))
+        row = np.array(row)
+
+        print(image.shape)
+        print(self.eigenfaces.shape[0])
+        coords = []
         for i in range(self.eigenfaces.shape[0]):
-            norm = np.linalg.norm(self.dataset[i] - image)
-            coords += self.eigenfaces[i] * exp(-self.gamma * norm * norm) 
-        return coords
+            coords.append(np.dot(self.eigenfaces[i], image)/np.linalg.norm(self.eigenfaces[i]))
+        return np.array(coords)
     
     def reconstruct_image(self, pca_coords, label, predicted_label):
         flatten = np.zeros(self.h*self.w*self.d)
