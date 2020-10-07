@@ -32,14 +32,14 @@ def train_with_svm(dataset_train, labels_train, classifier, is_pca, names):
 
     accumulated = 0
     i = 0
-    while accumulated < 0.65:
+    while accumulated < 0.50:
         accumulated = accumulated + eigenvalues[i]/total
         i = i + 1
     print(f"In order to win {round(accumulated, 4)} variance ratio we will use {i} eigenvectors")
     print("Training...")
 
     # Grab the first i eigenvectors
-    eigenvectors = eigenvec[:i+1]
+    eigenvectors = eigenvec[:i]
 
     if is_pca:
         # Apply PCA transformation to training training_data
@@ -76,6 +76,7 @@ def test_with_svm(dataset_test, classifier, preprocessing, pca_processing, show_
             show_testing_metrics = False
         labels_test_mapped_to_labels_train.append(label_mapped)
 
+    print(f"Shape of test set {dataset_test_pca}")
     # Test classifier
     y_pred = classifier.predict(dataset_test_pca)
     # classifier.save(preprocessing, pca_processing)

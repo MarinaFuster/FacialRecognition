@@ -121,10 +121,6 @@ class PCAPreprocessing():
         for i in range(len(X)):
             ax.scatter(X[i],Y[i],Z[i], color= 'b')
             ax.text(X[i],Y[i],Z[i], '%s'%(self.names[self.labels_train[i]]),size=7,zorder= 1, color='k')
-        
-        # ax = plt.axes(projection = "3d")
-        # ax.scatter3D(X,Y,Z)
-    
 
         ax.set_xlabel("First component")
         ax.set_ylabel("Second component")
@@ -160,17 +156,21 @@ class PCAPreprocessing():
 class KPCAPreprocessing():
 
     def __init__(self, dataset, avg_face, eigenvectors, h, w, d, names, labels_train, kernel, gamma=0.000001):
+        self.M = kernel.shape[0]
         self.h = h
         self.w = w
         self.d = d
         self.avg_face = avg_face
         self.gamma = gamma
+        
         self.eigenvectors = eigenvectors
+        print(f"Eigenvectors shape is {self.eigenvectors.shape}")
+        
+        self.dataset = dataset
         self.names = names
         self.labels_train = labels_train
         self.dataset = dataset
         self.kernel = kernel
-        self.eigenfaces = self.__get_eigenfaces(dataset, eigenvectors)
         self.training_set = self.__apply_pca(kernel)
         if self.d == 3:
             # self.__save_eigenfaces()
@@ -178,42 +178,7 @@ class KPCAPreprocessing():
 
     """ Applies PCA to dataset and returns training set for classifier """
     def __apply_pca(self, kernel):
-        # training_set = []
-        # for row in kernel:
-        #     coords = []
-        #     for i in range(self.eigenfaces.shape[1]):
-        #         coords.append(np.dot(self.eigenfaces.T[i], row)/np.linalg.norm(self.eigenfaces[i]))
-        #     training_set.append(np.array(coords))
-        return np.dot(kernel, self.eigenfaces.T)
-
-        # [1   2  3  4  5]
-        # [6   7  8  9 10]
-        # [11 12 13 14 15]
-
-        # [1   2  3  4  5]
-        # [6   7  8  9 10]
-        # [11 12 13 14 15]
-    
-    """ Calculates eigenfaces using dataset and eigenvector that represent some percentage of information.
-        Eigenfaces work as a basis for all images """
-    def __get_eigenfaces(self, dataset, eigenvectors):
-        return eigenvectors
-        # eigenfaces = []
-        # for vector in eigenvectors:
-        #     eigenface = np.zeros(dataset[0].shape)
-        #     for i in range(vector.shape[0]):
-        #         eigenface = eigenface + vector[i]*dataset[i]
-        #     eigenfaces.append(eigenface/np.linalg.norm(eigenface))
-        # return np.array(eigenfaces)
-    
-    """ Eigenfaces are saved in eigenfaces/"""
-    def __save_eigenfaces(self):
-        for i in range(self.eigenfaces.shape[0]):
-            reshaped = np.reshape(self.eigenfaces[i], (self.h, self.w, self.d))*255 + self.avg_face
-            reshaped = reshaped/255
-            plt.imshow(reshaped)
-            plt.savefig(f"eigenfaces/eigenface_{i}.png")
-            plt.clf()
+        return self.eigenvectors.dot(kernel).transpose()
     
     """ Plots all elements from training set onto the first three eigenfaces dimensional space """
     def __save_dataset_projections(self):
@@ -242,46 +207,42 @@ class KPCAPreprocessing():
     
     """ After an image was regular preprocessed, we call this method to apply PCA.
         This method returns coords of the test image on defined eigenfaces """
-    def apply_pca(self, image):
+    def apply_pca(self, image, DEGREE=3):
+        oneM_test = np.ones([1,self.M])/self.M
+        oneM = np.ones([self.M, self.M]) / self.M
+        
         if image.shape[0] != self.h*self.w*self.d:
             print("Your image shape should be (256,256,3) flatten")
             return
-        row = []
-        for i in range(self.dataset):
-            row.append( exp(-self.gamma * np.linalg.norm(image - self.dataset[i])**2 ))
-        row = np.array(row)
-
-        print(image.shape)
-        print(self.eigenfaces.shape[0])
-        coords = []
-        for i in range(self.eigenfaces.shape[0]):
-            coords.append(np.dot(self.eigenfaces[i], image)/np.linalg.norm(self.eigenfaces[i]))
-        return np.array(coords)
+        
+        K_test = (self.dataset.dot(image)/self.M + 1)**DEGREE
+        print(f"Al principio K_test tiene shape {K_test.shape}")
+        K_test = K_test - np.dot(oneM_test,self.kernel) - \
+            np.dot(K_test,oneM) + np.dot(oneM_test,np.dot(self.kernel,oneM))
+        print(f"K_test tiene shape {K_test.shape}")
+        
+        proyected = self.eigenvectors.dot(K_test.transpose())
+        print(f"Proyected image has shape {proyected.shape}")
+        return np.squeeze(proyected)
     
     def reconstruct_image(self, pca_coords, label, predicted_label):
-        flatten = np.zeros(self.h*self.w*self.d)
-        for i in range(self.eigenfaces.shape[0]):
-            flatten += pca_coords[i]*self.eigenfaces[i]
-        reshaped = np.reshape(flatten, (self.h, self.w, self.d))*255 + self.avg_face
-        reshaped = reshaped/255
-        plt.title(f"Label: {label}  -  Predicted Label: {predicted_label}")
-        plt.imshow(reshaped)
-        plt.show()
-        plt.clf()
+        return
 
     @staticmethod
-    def rbf_kernel_pca(dataset, gamma=0.000001):
+    def rbf_kernel_pca(dataset, DEGREE=3):
 
-        # Calculate pairwise squared Euclidean distances
-        # in the MxN dimensional dataset.
-        sq_dists = pdist(dataset, 'sqeuclidean')    
-        # Convert pairwise distances into a square matrix.
-        mat_sq_dists = squareform(sq_dists)    
-        # Compute the symmetric kernel matrix.
-        K = exp(-gamma * mat_sq_dists)    
-        # Center the kernel matrix.
-        N = K.shape[0]
-        one_n = np.ones((N,N)) / N
-        K = K - one_n.dot(K) - K.dot(one_n) + one_n.dot(K).dot(one_n)
-  
-        return K
+        # We use a polynomial kernel
+        M = dataset.shape[0]
+        print(f"Shape of dataset is {dataset.shape}")
+        
+        K = (dataset.dot(dataset.transpose())/M + 1)**DEGREE
+        print(f"Shape of K matrix is {K.shape}")
+        
+        # Normalizing the K by centering it
+        oneM = np.ones([M, M]) / M
+        print(f"Shape of oneM is {oneM.shape}")
+        K_train = K - oneM.dot(K) - K.dot(oneM) + oneM.dot(K.dot(oneM))
+        
+        
+        print(f"Shape of K_train is {K_train.shape}")
+        return K_train
