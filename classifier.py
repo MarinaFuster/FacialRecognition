@@ -15,8 +15,8 @@ class Classifier:
     # against maximization of the decision function’s margin. For larger values of C, a smaller margin will be
     # accepted if the decision function is better at classifying all training points correctly. A lower C will
     # encourage a larger margin, therefore a simpler decision function, at the cost of training accuracy.
-    def __init__(self, C=1., gamma=0.001):
-        self.clf = svm.SVC(C=C, gamma=gamma)
+    def __init__(self):
+        self.clf = svm.LinearSVC(max_iter=2000)
 
     def train_classifier(self, X_train, y_train):
         self.clf.fit(X_train, y_train)
