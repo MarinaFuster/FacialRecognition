@@ -14,7 +14,7 @@ import re
 def init_cli():
     f = Figlet(font='slant')
     print("Welcome!")
-    print(f.renderText('FaceRecognition'))
+    print(f.renderText('Face Mask'))
     print("In order to quit write exit.")
     print("IMPORTANT:")
     print("1. In order to make things simple, labels should be in the filename.")

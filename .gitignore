@@ -1,5 +1,7 @@
 .idea/**
 .vscode/**
 venv/**
-
+testing_data/**
+training_data/**
+eigenfaces/**
 **/__pycache__/**
