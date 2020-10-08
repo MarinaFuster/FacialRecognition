@@ -14,9 +14,7 @@ def init_cli():
     print("Welcome!")
     print(f.renderText('Face Mask'))
     print("In order to quit write exit.")
-    print("IMPORTANT:")
-    print("1. In order to make things simple, labels should be in the filename.")
-    print("2. Images should be 256x256 pixels, in .jpg extension\n")
+    print("IMPORTANT: In order to make things simple, labels should be in the filename.")
 
 
 def get_images_path() -> str:
@@ -55,6 +53,7 @@ def get_training_dataset() -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
             continue
         if is_pre_trained.lower() == 'no':
             dataset_path = get_images_path()
+            should_end = True
         else:
             should_end = True
 

@@ -26,7 +26,7 @@ def run_facial_recognition() -> None:
         is_pca: bool = should_run_pca()
         ended = True if is_pca is None or ended else False
 
-    # Showing metrix
+    # Showing matrix
     if not ended:
         show_testing_metrics: bool = should_show_metrics()
         ended = True if show_testing_metrics is None or ended else False
@@ -36,12 +36,14 @@ def run_facial_recognition() -> None:
         return
 
     # Training Classifier
+    print("Training...")
     classifier = Classifier()
     preprocessing: PreProcessing
     pca_processing: np.ndarray
 
     preprocessing, pca_processing = train_with_svm(training_dataset, labels, names, classifier, is_pca)
 
+    print("Now you can start testing.")
     while not ended:
         path = input("Enter path to directory or path to image to test: ").lower()
         if path == 'exit':
@@ -116,7 +118,6 @@ def train_with_svm(
         i = i + 1
 
     print(f"In order to win {round(acum, 4)} variance ratio we will use {i} eigenvectors")
-    print("Training...")
 
     # Grab the first i eigenvectors
     eigenvectors = eigenvectors[:i]
@@ -134,6 +135,7 @@ def train_with_svm(
 
     # Train classifier with default C and gamma values
     classifier.train_classifier(scaled_training_set, labels)
+    print("Training done!")
     classifier.save(preprocessing, processing)
     return preprocessing, processing
 
