@@ -22,12 +22,14 @@ def run_facial_recognition() -> None:
     ended: bool = True if training_dataset is None or labels is None or training_dataset.size == 0 or labels.size == 0 else False
 
     # Applying PCA or KPCA
-    is_pca: bool = should_run_pca()
-    ended = True if is_pca is None or ended else False
+    if not ended:
+        is_pca: bool = should_run_pca()
+        ended = True if is_pca is None or ended else False
 
     # Showing metrix
-    show_testing_metrics: bool = should_show_metrics()
-    ended = True if show_testing_metrics is None or ended else False
+    if not ended:
+        show_testing_metrics: bool = should_show_metrics()
+        ended = True if show_testing_metrics is None or ended else False
 
     if ended:
         print("Exiting...")
