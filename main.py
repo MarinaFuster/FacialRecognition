@@ -48,7 +48,7 @@ def run_facial_recognition() -> None:
             ended = True
         else:
             images, labels_test, names_test = load_images(path)
-            if images.size == 0:
+            if images is None or images.size == 0:
                 continue
             if images.shape[0] == 0:
                 print("There are no images to test")
@@ -106,7 +106,7 @@ def train_with_svm(
         c_matrix = KPCAPreprocessing.get_kernel_pol_method(preprocessing.training_set)
 
     # Uses QR method to get eigenvalues and eigenvectors
-    eigenvalues, eigenvectors = qr_eig_algorithm(c_matrix)
+    eigenvalues, eigenvectors = np.linalg.eig(c_matrix)# qr_eig_algorithm(c_matrix)
     total = np.sum(np.abs(eigenvalues))
 
     acum = 0
