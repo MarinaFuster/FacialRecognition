@@ -5,7 +5,6 @@ from mpl_toolkits.mplot3d import Axes3D
 from PIL import Image
 from scipy.spatial.distance import pdist, squareform
 from scipy import exp
-from scipy.linalg import eigh
 
 class PreProcessing:
     def __init__(self, dataset, height, width, channels):
@@ -80,7 +79,7 @@ class PCAPreprocessing:
         self.names = names
         self.labels_train = labels_train
         if self.channels == 3:
-            self.__save_eigenfaces()
+            self.__save_eigenfaces(3)
             self.__save_dataset_projections()
 
     """ Applies PCA to dataset and returns training set for classifier """
@@ -89,7 +88,7 @@ class PCAPreprocessing:
         for image in dataset:
             coords = []
             for face in self.eigenfaces:
-                coords.append(np.dot(face, image)/np.linalg.norm(face))
+                coords.append(np.dot(face, image))
             training_set.append(np.array(coords))
         return np.array(training_set)
 
@@ -101,14 +100,14 @@ class PCAPreprocessing:
             eigenface = np.zeros(dataset[0].shape)
             for i in range(vector.shape[0]):
                 eigenface = eigenface + vector[i]*dataset[i]
-            eigenfaces.append(eigenface/np.linalg.norm(eigenface))
+            eigenfaces.append(eigenface)
 
         return np.array(eigenfaces)
     
     """ Eigenfaces are saved in the `eigenfaces/` directory"""
-    def __save_eigenfaces(self) -> None:
-        for i in range(self.eigenfaces.shape[0]):
-            reshaped = np.reshape(self.eigenfaces[i], (self.height, self.width, self.channels))*255 + self.avg_face
+    def __save_eigenfaces(self, n) -> None:
+        for i in range(n):
+            reshaped = np.reshape(self.eigenfaces[i], (self.height, self.width, self.channels)) + self.avg_face
             reshaped = reshaped/255
             plt.imshow(reshaped)
             plt.savefig(f"eigenfaces/eigenface_{i}.png")
@@ -143,7 +142,7 @@ class PCAPreprocessing:
             return None
         coords = []
         for face in self.eigenfaces:
-            coords.append(np.dot(face, image)/np.linalg.norm(face))
+            coords.append(np.dot(face, image))
         return np.array(coords)
     
     def reconstruct_image(self, pca_coords, label, predicted_label):
@@ -161,14 +160,14 @@ class KPCAPreprocessing:
 
     def __init__(self, dataset, avg_face, eigenvectors, height, width,
                  channels, names, labels_train, K):
-        self.total_images: np.int64 = K.shape[0]
+        self.M: np.int64 = K.shape[0]
+        print(f"M value is {self.M}")
         self.height: np.int64 = height
         self.width: np.int64 = width
         self.channels: np.int64 = channels
         self.avg_face: np.ndarray = avg_face
         
         self.eigenvectors = eigenvectors
-        print(f"Eigenvectors shape is {self.eigenvectors.shape}")
         
         # about current dataset
         self.dataset = dataset
@@ -186,7 +185,7 @@ class KPCAPreprocessing:
         proyections = np.dot(self.K.T, self.eigenvectors.T)
         print(f"Proyections of dataset onto KPCA has shape {proyections.shape}")
         
-        return  proyections # applies kpca to dataset
+        return proyections # applies kpca to dataset
 
     """ Plots all elements from training set onto the first three eigenfaces dimensional space """
     def __save_dataset_projections(self) -> None:
@@ -208,17 +207,27 @@ class KPCAPreprocessing:
     """ After an image was regular preprocessed, we call this method to apply KPCA.
         This method returns coords of the test image on defined eigenfaces """
     def apply_method(self, image, DEGREE=2):
-        return [] # apply pca to one image TODO complete
+        ones_test = np.ones([1, self.M]) / self.M
+        
+        K_test = (np.dot([image], self.dataset.T) + 1) ** DEGREE
+        
+        ones_test_dot_K = np.dot(ones_test, self.K)
+        
+        ones = np.ones([self.M, self.M]) / self.M # weak point ?
+        
+        K_test = K_test - ones_test_dot_K - np.dot(K_test, ones) + np.dot(ones_test_dot_K, ones)
+        
+        proyection = np.dot(K_test, self.eigenvectors.T)
+        
+        return proyection[0] # apply pca to one image TODO complete
 
     @staticmethod
-    def rbf_kernel_pca(images, DEGREE=2):
+    def get_kernel_pol_method(images, DEGREE=2):
         M = images.shape[0]
         
         K = (np.dot(images, images.T) + 1) ** DEGREE
         ones = np.ones([M, M]) / M
         K_dot_ones = np.dot(K, ones)
         K = K - np.dot(ones, K) - K_dot_ones + np.dot(ones, K_dot_ones)
-        
-        print(f"K shape is {K.shape}")
         
         return K

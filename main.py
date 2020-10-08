@@ -6,10 +6,11 @@ import numpy as np
 from data_loading import load_images
 from eigen import qr_eig_algorithm
 from metrics import print_metrics
+from sklearn.preprocessing import StandardScaler
 from preprocessing import PreProcessing, KPCAPreprocessing, PCAPreprocessing
 
 
-PRECISION = 0.5
+PRECISION = 0.95
 
 
 def run_facial_recognition() -> None:
@@ -125,9 +126,12 @@ def train_with_svm(
         processing = KPCAPreprocessing(preprocessing.training_set, preprocessing.avg_face, eigenvectors,
                                        dataset.shape[1], dataset.shape[2], dataset.shape[3], names,
                                        labels, c_matrix)
+    # Feature scaling
+    sc = StandardScaler()
+    scaled_training_set = sc.fit_transform(processing.training_set)
 
     # Train classifier with default C and gamma values
-    classifier.train_classifier(processing.training_set, labels)
+    classifier.train_classifier(scaled_training_set, labels)
     classifier.save(preprocessing, processing)
     return preprocessing, processing
 
@@ -160,10 +164,13 @@ def test_with_svm(dataset_test, classifier, preprocessing, pca_processing, show_
             testing_with_training_dataset = False
             show_testing_metrics = False
         labels_test_mapped_to_labels_train.append(label_mapped)
+    
+    sc = StandardScaler()
+    scaled_dataset_test_pca = sc.fit_transform(dataset_test_pca)
 
-    print(f"Shape of test set {dataset_test_pca}")
+    
     # Test classifier
-    y_pred = classifier.predict(dataset_test_pca)
+    y_pred = classifier.predict(scaled_dataset_test_pca)
     # classifier.save(preprocessing, pca_processing)
 
     # To obtain metrics
