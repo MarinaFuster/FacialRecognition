@@ -45,7 +45,7 @@ def run_facial_recognition() -> None:
 
     print("Now you can start testing.")
     while not ended:
-        path = input("Enter path to directory or path to image to test: ").lower()
+        path = input("Enter path to directory or path to image to test: ")
         if path == 'exit':
             ended = True
         else:
