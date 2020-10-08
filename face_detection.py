@@ -1,13 +1,11 @@
 import cv2
 from mtcnn.mtcnn import MTCNN
 
-from cli import read_images
 from data_loading import load_images
-from image_resize import resize_image
 import sys
 import joblib
 
-from main_old import test_with_svm
+from main import test_with_svm
 
 
 def predict_with_classifier(file):
@@ -15,9 +13,9 @@ def predict_with_classifier(file):
     preprocessing = joblib.load("models/preprocessing.jolib")
     pca_processing = joblib.load("models/pca_processing.jolib")
     _, labels, names = load_images()
-    images, labels_test, names_test = read_images(file)
+    images, labels_test, names_test = load_images(file)
     return test_with_svm(images, classifier, preprocessing, pca_processing, False,
-                         labels_test=labels_test, labels_train=labels, names_test=names_test, names=names)
+                         labels_test, names_test=names_test, names=names)
 
 
 if __name__ == '__main__':
