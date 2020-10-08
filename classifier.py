@@ -16,7 +16,7 @@ class Classifier:
     # accepted if the decision function is better at classifying all training points correctly. A lower C will
     # encourage a larger margin, therefore a simpler decision function, at the cost of training accuracy.
     def __init__(self):
-        self.clf = svm.LinearSVC(max_iter=2000)
+        self.clf = svm.LinearSVC(max_iter=100000)
 
     def train_classifier(self, x_train: np.ndarray, y_train: np.ndarray) -> None:
         self.clf.fit(x_train, y_train)
