@@ -1,14 +1,12 @@
 import csv
+from typing import Tuple, Union
+
 import numpy as np
 from numpy import genfromtxt
 
 from data_loading import load_images
 from pathlib import Path
-from PIL import Image
 from pyfiglet import Figlet
-from image_resize import resizeImage
-import os
-import re
 
 
 def init_cli():
@@ -21,44 +19,47 @@ def init_cli():
     print("2. Images should be 256x256 pixels, in .jpg extension\n")
 
 
-def get_training_dataset():
+def get_images_path() -> str:
+    dataset_path = input("Enter path to images: ")
+    if not Path(dataset_path).exists():
+        print("No such file <:(")
+        return ""
+    else:
+        should_end = True
+    # Labels can be an input to the program through a separate .csv
+    # Right now we assume labels are in the filename
+    # else:
+    #     labels_path = input("Enter path to images labels (.csv)")
+    #     print("IMPORTANT: To read labels in the correct order, it is assumed that the order of labels "
+    #     "corresponds to the photos in alphabetical order")
+    #     if not Path(labels_path).exists():
+    #         print("No such file <:(")
+    #         labels_path = None
+    #     else:
+    #         should_end = True
+    return dataset_path
+
+
+def get_training_dataset() -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
     should_end = False
     init_cli()
     is_pre_trained = 'yes'
-    dataset_path, dataset_train, labels_train, names = None, None, None, None
+    dataset_path, dataset_train, labels_train, names = None, np.array(0), None, None
     while not should_end:
-        is_pre_trained = input("Do you wish to train with our pre trained network? (Yes/No): ")
-        if is_pre_trained.lower() == "exit":
+        is_pre_trained = input("Do you wish to train with our pre trained network? (Yes/No): ").lower()
+        if is_pre_trained == "exit":
             should_end = True
             continue
-        if is_pre_trained.lower() != 'yes' and is_pre_trained.lower() != 'no':
-            print("No such option <:(")
+        if is_pre_trained != 'yes' and is_pre_trained.lower() != 'no':
+            print(f"{is_pre_trained} is not a valid response. Please write yes or no")
             continue
         if is_pre_trained.lower() == 'no':
-            dataset_path = input("Enter path to images: ")
-            if not Path(dataset_path).exists():
-                print("No such file <:(")
-                dataset_path = None
-            else:
-                should_end = True
-            # Labels can be an input to the program through a separate .csv
-            # Right now we assume labels are in the filename
-            # else:
-            #     labels_path = input("Enter path to images labels (.csv)")
-            #     print("IMPORTANT: To read labels in the correct order, it is assumed that the order of labels "
-            #     "corresponds to the photos in alphabetical order")
-            #     if not Path(labels_path).exists():
-            #         print("No such file <:(")
-            #         labels_path = None
-            #     else:
-            #         should_end = True
+            dataset_path = get_images_path()
         else:
             should_end = True
 
-    if is_pre_trained.lower() == 'yes':
-        dataset_train, labels_train, names = load_images()
-    if dataset_path is not None:
-        dataset_train, labels_train, names = read_images(dataset_path)
+    if is_pre_trained == 'yes' or dataset_path:
+        dataset_train, labels_train, names = load_images(dataset_path)
 
     return dataset_train, labels_train, names
 
@@ -101,43 +102,6 @@ def show_metrics():
             should_end = True
             show_metrics = False
     return show_metrics
-
-def read_images(path):
-    file = Path(path)
-    if not file.exists():
-        print("No such file <:(")
-        return None
-    images = []
-    labels_from_filename = []
-
-    if not file.is_dir():
-        images.append(np.array(Image.open(path), dtype=np.float))
-        labels_from_filename.append(0)
-        names_from_filename = [re.findall(r'[a-z]+', file.name)[0]]
-    else:
-        # Access all JPG files in directory
-        DATA_PATH = str(path)+"/"
-        allfiles = os.listdir(DATA_PATH)
-        imlist = [filename for filename in allfiles if filename[-4:] in [".jpg", ".JPG"]]
-
-        # Translate names in JPG files to labels
-        names_from_filename = [re.findall(r'[a-z]+', filename)[0] for filename in allfiles if filename[-4:] in [".jpg", ".JPG"]]
-        names_from_filename = list(dict.fromkeys(names_from_filename))
-        names_from_filename.sort()
-
-        for im in imlist:
-            # images will be an array of (256,256,3) numpy arrays
-            image = Image.open(DATA_PATH+im)
-            width, height = image.size
-            if width != 256 or height != 256:
-                resizeImage(DATA_PATH+im)
-                image = Image.open(DATA_PATH + im)
-                print(f"Image {DATA_PATH + im} has been resized to 256x256")
-            images.append(np.array(image, dtype=np.float))
-
-            name = re.findall(r'[a-z]+', im)[0]
-            labels_from_filename.append(names_from_filename.index(name))
-    return np.array(images), np.array(labels_from_filename), np.array(names_from_filename)
 
 
 def read_labels(path):

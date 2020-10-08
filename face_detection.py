@@ -3,11 +3,11 @@ from mtcnn.mtcnn import MTCNN
 
 from cli import read_images
 from data_loading import load_images
-from image_resize import resizeImage
+from image_resize import resize_image
 import sys
 import joblib
 
-from main import test_with_svm
+from main_old import test_with_svm
 
 
 def predict_with_classifier(file):

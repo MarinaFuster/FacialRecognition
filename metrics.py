@@ -1,7 +1,6 @@
 from sklearn import metrics
 import numpy as np
 
-
 def print_metrics(labels_pred, names, labels_test, labels_test_mapped_to_labels_train, names_test,
                   testing_with_training_dataset, show_testing_metrics):
     corrects = 0
