@@ -19,7 +19,7 @@ def run_facial_recognition() -> None:
     """
     # Initializing CLI interface and obtaining training dataset
     training_dataset, labels, names = get_training_dataset()
-    ended: bool = True if training_dataset.size == 0 or labels.size == 0 else False
+    ended: bool = True if training_dataset is None or labels is None or training_dataset.size == 0 or labels.size == 0 else False
 
     # Applying PCA or KPCA
     is_pca: bool = should_run_pca()
