@@ -1,7 +1,8 @@
 import matplotlib.pyplot as plt
 import numpy as np
-from PIL import Image
+
 from mpl_toolkits.mplot3d import Axes3D
+from PIL import Image
 from scipy.spatial.distance import pdist, squareform
 from scipy import exp
 from scipy.linalg import eigh
@@ -41,7 +42,7 @@ class PreProcessing():
     """ Substracts avg face from dataset and values range from [-1,1] """
     def __standardize_dataset(self, dataset, avg_face):
         # standardize dataset to be centered at 0 and values range from [-1,1]
-        return (dataset - avg_face)/255.0
+        return dataset-avg_face
     
     """ Flattens all images to (256,256,3) to 256*256*3 dimensions """
     def __flatten_dataset(self, dataset):
@@ -155,94 +156,69 @@ class PCAPreprocessing():
             
 class KPCAPreprocessing():
 
-    def __init__(self, dataset, avg_face, eigenvectors, h, w, d, names, labels_train, kernel, gamma=0.000001):
-        self.M = kernel.shape[0]
+    def __init__(self, dataset, avg_face, eigenvectors, h, w, d, names, labels_train, K):
+        
+        self.M = K.shape[0] # how many samples
         self.h = h
         self.w = w
         self.d = d
+
+        # about pre processing
         self.avg_face = avg_face
-        self.gamma = gamma
+        self.eigenvectors = np.fliplr(eigenvectors)
+        self.K = K
         
-        self.eigenvectors = eigenvectors
-        print(f"Eigenvectors shape is {self.eigenvectors.shape}")
-        
+        # about current dataset
         self.dataset = dataset
         self.names = names
         self.labels_train = labels_train
-        self.dataset = dataset
-        self.kernel = kernel
-        self.training_set = self.__apply_pca(kernel)
+        
+        # after kpca
+        self.training_set = self.__apply_pca(K)
         if self.d == 3:
-            # self.__save_eigenfaces()
             self.__save_dataset_projections()
 
     """ Applies PCA to dataset and returns training set for classifier """
-    def __apply_pca(self, kernel):
-        return self.eigenvectors.dot(kernel).transpose()
+    def __apply_pca(self, K):
+        proyections = np.dot(K.T, self.eigenvectors.T)
+        print(f"Proyections of dataset onto KPCA has shape {proyections.shape}")
+        return  proyections # applies kpca to dataset
     
     """ Plots all elements from training set onto the first three eigenfaces dimensional space """
     def __save_dataset_projections(self):
-        X = self.training_set[:,0]
-        Y = self.training_set[:,1]
-        Z = self.training_set[:,2]
+        if self.training_set.shape[1] >= 3:
+            X = self.training_set[:,0]
+            Y = self.training_set[:,1]
+            Z = self.training_set[:,2]
 
-        ax = plt.axes(projection = "3d")
+            ax = plt.axes(projection = "3d")
 
-        for i in range(len(X)):
-            ax.scatter(X[i],Y[i],Z[i], color= 'b')
-            ax.text(X[i],Y[i],Z[i], '%s'%(self.names[self.labels_train[i]]),size=7,zorder= 1, color='k')
-        
-        # ax = plt.axes(projection = "3d")
-        # ax.scatter3D(X,Y,Z)
-    
+            for i in range(len(X)):
+                ax.scatter(X[i],Y[i],Z[i], color= 'b')
+                ax.text(X[i],Y[i],Z[i], '%s'%(self.names[self.labels_train[i]]),size=7,zorder= 1, color='k')
 
-        ax.set_xlabel("First component")
-        ax.set_ylabel("Second component")
-        ax.set_zlabel("Third component")
-
-        
-        plt.title("Projection of images on eigenface dimensional space")
-        plt.savefig("eigenfaces/dataset_projection.png")
-        plt.clf()
+            ax.set_xlabel("First component")
+            ax.set_ylabel("Second component")
+            ax.set_zlabel("Third component")
+            
+            plt.title("Projection of images on eigenface dimensional space")
+            plt.savefig("eigenfaces/dataset_projection.png")
+            plt.clf()
     
     """ After an image was regular preprocessed, we call this method to apply PCA.
         This method returns coords of the test image on defined eigenfaces """
-    def apply_pca(self, image, DEGREE=3):
-        oneM_test = np.ones([1,self.M])/self.M
-        oneM = np.ones([self.M, self.M]) / self.M
-        
-        if image.shape[0] != self.h*self.w*self.d:
-            print("Your image shape should be (256,256,3) flatten")
-            return
-        
-        K_test = (self.dataset.dot(image)/self.M + 1)**DEGREE
-        print(f"Al principio K_test tiene shape {K_test.shape}")
-        K_test = K_test - np.dot(oneM_test,self.kernel) - \
-            np.dot(K_test,oneM) + np.dot(oneM_test,np.dot(self.kernel,oneM))
-        print(f"K_test tiene shape {K_test.shape}")
-        
-        proyected = self.eigenvectors.dot(K_test.transpose())
-        print(f"Proyected image has shape {proyected.shape}")
-        return np.squeeze(proyected)
-    
-    def reconstruct_image(self, pca_coords, label, predicted_label):
-        return
+    def apply_pca(self, image, DEGREE=2):
+        return [] # Complete with method to apply pca
 
     @staticmethod
-    def rbf_kernel_pca(dataset, DEGREE=3):
-
-        # We use a polynomial kernel
-        M = dataset.shape[0]
-        print(f"Shape of dataset is {dataset.shape}")
+    def rbf_kernel_pca(images, DEGREE=2):
+        M = images.shape[0]
         
-        K = (dataset.dot(dataset.transpose())/M + 1)**DEGREE
-        print(f"Shape of K matrix is {K.shape}")
+        K = (np.dot(images, images.T) + 1) ** DEGREE
+        ones = np.ones([M, M]) / M
+        K_dot_ones = np.dot(K, ones)
+        K = K - np.dot(ones, K) - K_dot_ones + np.dot(ones, K_dot_ones)
         
-        # Normalizing the K by centering it
-        oneM = np.ones([M, M]) / M
-        print(f"Shape of oneM is {oneM.shape}")
-        K_train = K - oneM.dot(K) - K.dot(oneM) + oneM.dot(K.dot(oneM))
+        print(f"K shape is {K.shape}")
         
-        
-        print(f"Shape of K_train is {K_train.shape}")
-        return K_train
+        return K
