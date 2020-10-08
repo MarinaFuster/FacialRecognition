@@ -3,8 +3,8 @@ from sklearn import datasets
 from sklearn import decomposition
 from sklearn import svm
 from sklearn.model_selection import train_test_split
-from sklearn import metrics
 from joblib import dump, load
+import numpy as np
 
 
 class Classifier:
@@ -18,11 +18,11 @@ class Classifier:
     def __init__(self):
         self.clf = svm.LinearSVC(max_iter=2000)
 
-    def train_classifier(self, X_train, y_train):
-        self.clf.fit(X_train, y_train)
+    def train_classifier(self, x_train: np.ndarray, y_train: np.ndarray) -> None:
+        self.clf.fit(x_train, y_train)
 
-    def predict(self, X_test):
-        return self.clf.predict(X_test)
+    def predict(self, x_test):
+        return self.clf.predict(x_test)
 
     def save(self, preprocessing, pca_processing):
         dump(self.clf, 'models/classifier.jolib')
