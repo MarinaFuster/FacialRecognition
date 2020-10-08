@@ -108,7 +108,7 @@ def train_with_svm(
         c_matrix = KPCAPreprocessing.get_kernel_pol_method(preprocessing.training_set)
 
     # Uses QR method to get eigenvalues and eigenvectors
-    eigenvalues, eigenvectors = np.linalg.eig(c_matrix)# qr_eig_algorithm(c_matrix)
+    eigenvalues, eigenvectors = qr_eig_algorithm(c_matrix)
     total = np.sum(np.abs(eigenvalues))
 
     acum = 0
@@ -168,11 +168,11 @@ def test_with_svm(dataset_test, classifier, preprocessing, pca_processing, show_
             testing_with_training_dataset = False
             show_testing_metrics = False
         labels_test_mapped_to_labels_train.append(label_mapped)
-    
+
     sc = StandardScaler()
     scaled_dataset_test_pca = sc.fit_transform(dataset_test_pca)
 
-    
+
     # Test classifier
     y_pred = classifier.predict(scaled_dataset_test_pca)
     # classifier.save(preprocessing, pca_processing)
